@@ -27,9 +27,9 @@ config_recur_vendor_path_append(){
 config_myself(){
 	local -r parentPath="$1"
 	config_myself_vendor "$parentPath"
-	config_setting_iterate "$parentPath" 'config_myself_vendor_closure'
+	config_setting_iterate 'config_myself_vendor_closure'
 	config_recur_start "$parentPath"
-	config_setting_iterate "$parentPath" 'config_recur_start_closure'
+	config_setting_iterate 'config_recur_start_closure'
 }
 config_myself_vendor(){
 	eval config_myself_vendor_closure\(\)\{ local \-r start\=\'$1\'  \; config_recur \"\$start\" \; \}

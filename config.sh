@@ -65,7 +65,7 @@ config_compose(){
 	local -r myRoot="$(dirname ${BASH_SOURCE[0]})"
 	config_myself "$myRoot"
 
-	for mod in "$( "$myRoot/composer/include.composer.sh" "$myRoot")"; do
+	for mod in $( "$myRoot/composer/include.composer.sh" "$myRoot"); do
 		source "$mod"
 	done
 

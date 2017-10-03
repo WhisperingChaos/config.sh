@@ -1,9 +1,9 @@
 
-config_vendor(){
-cat <<ConfigSettingsMyself
-'component/pathset'  'git@github.com:WhisperingChaos/BuildConfig.git' 'master'  "$(dirname ${BASH_SOURCE[0]})"
-ConfigSettingsMyself
-}
+#config_vendor(){
+#cat <<ConfigSettingsMyself
+#'component/pathset'  'git@github.com:WhisperingChaos/BuildConfig.git' 'master'  "$(dirname ${BASH_SOURCE[0]})"
+#ConfigSettingsMyself
+#}
 
 config_recur(){
 	local -r parentPath="$1"
@@ -26,8 +26,8 @@ config_recur_vendor_path_append(){
 }
 config_myself(){
 	local -r parentPath="$1"
-	config_myself_vendor "$parentPath"
-	config_setting_iterate 'config_myself_vendor_closure'
+#	config_myself_vendor "$parentPath"
+#	config_setting_iterate 'config_myself_vendor_closure'
 	config_recur_start "$parentPath"
 	config_setting_iterate 'config_recur_start_closure'
 }
@@ -79,4 +79,3 @@ set -ex
 # config must first compose a minimal self then continue composing others.
 config_compose
 main_call
-

@@ -70,6 +70,17 @@ config_install(){
 	wget -O - "$repro/tarball/$ver" | tar -xz --strip 1 -C "$reproPath"
 }
 
+config_install(){
+	local -r relPath="$1"
+	local -r repro="$2"
+	local -r ver="$3"
+	local -r parentPath="$4"
+	local -r reproPath="$parentPath/$relPath"
+
+	echo $1, $2, $3, $4
+}
+
+
 config_compose(){
 	# minimally compose myself
 	local -r myRoot="$(dirname ${BASH_SOURCE[0]})"

@@ -21,8 +21,10 @@ config_vendor_file(){
 
 	local config
 	while read -r config; do
+		echo "$FUNCNAME 1  $config"
 		if [[ $config =~ ^[:space:]*#\<vendor\.config:([:alnum:][.-])+\>$ ]]; then return true; fi
 	done
+	echo returnedfalse
 	return false
 }
 
@@ -30,7 +32,8 @@ config_vendor_file_entries(){
 
 	local config
 	while read -r config; do
-		if [[ $config =~ ^[:space:]*# ]]; then continue; fi
+			echo "$FUNCNAME 2  $config"
+	if [[ $config =~ ^[:space:]*# ]]; then continue; fi
 		if [[ $config =~ ^[:space:]*$ ]]; then continue; fi
 		echo "$config"
 	done

@@ -21,7 +21,7 @@ config_vendor_file(){
 
 	local config
 	while read -r config; do
-		if [[ $config =~ ^[:space:]*#<vendor\.config:(alnum][.-])+>$ ]]; then return true; fi
+		if [[ $config =~ ^[:space:]*#\<vendor\.config:([:alnum:][.-])+\>$ ]]; then return true; fi
 	done
 	return false
 }

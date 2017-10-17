@@ -14,7 +14,7 @@ config_vendor_file_search(){
 		for subDir in $(ls -d "$vendorDir/*/" 2>/dev/null); do
 			config_vendor_file_search "$subDir"
 		done
-	done < <( $ls "$parentPath/vendor.config" 2>/dev/null )
+	done < <( ls "$parentPath/vendor.config" 2>/dev/null )
 }
 
 config_vendor_file(){

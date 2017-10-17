@@ -1,0 +1,1 @@
+../component/config.include.sh

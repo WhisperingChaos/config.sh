@@ -7,7 +7,6 @@ config_vendor_file_search(){
 	while read -r configPath; do
 		local vendorDir="$(dirname $configPath)"
 
-		config_vendor_file_echo "$configPath"
 		if cat $configPath | config_vendor_file; then 
 			cat $configPath | config_vendor_file_entries | config_vendor_path_append "$vendorDir"
 		fi

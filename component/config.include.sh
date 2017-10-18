@@ -11,7 +11,7 @@ config_vendor_file_search(){
 			cat $configPath | config_vendor_file_entries | config_vendor_path_append "$vendorDir"
 		fi
 
-		for subDir in $(ls -d "$vendorDir/*/" 2>/dev/null); do
+		for subDir in $(ls -d "$vendorDir/"*/ 2>/dev/null); do
 			config_vendor_file_search "$subDir"
 		done
 	done < <( ls "$parentPath/vendor.config" 2>/dev/null )
@@ -40,11 +40,11 @@ config_vendor_file_entries(){
 }
 
 config_vendor_path_append(){
-	local -r vendorDir=$1
+	local -r vendorDir="$1"
 
 	local config
 	while read -r config; do
-		echo "$config $vendorDir"
+		echo "$config '$vendorDir'"
 	done
 }
 
@@ -58,7 +58,9 @@ config_setting_iterate(){
 	local entry
 	while read -r entry; do
 		eval set -- $entry
-		config_install "$1" "$2" "$3" "$4"
+		if ! config_install "$1" "$2" "$3" "$4"; then
+			echo "type='error' msg='component install failed' relPath='$1' repro='$2' version='$3' vendorDir='$4'" >&2
+		fi
 	done
 }
 

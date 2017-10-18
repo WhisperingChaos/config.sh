@@ -1,24 +1,23 @@
 #!/bin/bash
-
+# separate functions so they can be tested but due
+# to bootstrap constraint, include must be in same
+# physical directory as this command (component).
 source "$(dirname "${BASH_SOURCE[0]}")"/config.include.sh
 
-config_compose(){
+main(){
+	local -r myRoot="$1"
 	# minimally compose myself
-	local -r myRoot="$(dirname ${BASH_SOURCE[0]})"
 	config_myself "$myRoot"
-	# now fully compose myself
-	for mod in $( "$myRoot/composer/include.composer.sh" "$myRoot"); do
+	if ! [ -d "$myRoot/composer" ]; then
+		# stop when executing myself to compose myself
+	   	return
+   	fi
+	# now fully compose myself because others are using me to
+	# compose themselves
+	for mod in $( "$myRoot/composer/composer.sh" "$myRoot"); do
 		source "$mod"
 	done
-
-# path_Set "${myRoot}" 
 }
 
-main_call(){
-	echo "path $1"
-}
-set -ex
-# compose myself
-config_compose
-# compose others
-# main_call
+main "$(dirname ${BASH_SOURCE[0]})"
+

@@ -3,7 +3,7 @@ config_executeable(){
 	local -r myRoot="$1"
 	# include components required to create this executable
 	local mod
-	for mod in $( "$myRoot/composer/include.composer.sh" "$myRoot"); do
+	for mod in $( "$myRoot/composer/composer.sh" "$myRoot"); do
 		source "$mod"
 	done
 	# include component to be tested 
@@ -44,6 +44,7 @@ test_config_vendor_file_entries_single_line_comments(){
 
 test_config_vendor_path_append(){
 	assert_true 'test_config_vendor_path_parents | config_vendor_path_append "/vendor" | assert_output_true test_config_vendor_path_parents_with_vendor'
+	assert_true 'test_config_vendor_path_parents_quoted | config_vendor_path_append "/vendor" | assert_output_true test_config_vendor_path_parents_with_vendor_quoted'
 }	
 
 test_config_vendor_path_parents(){
@@ -55,10 +56,26 @@ vendor_path_parents
 
 test_config_vendor_path_parents_with_vendor(){
 cat <<vendor_path_parents
-col1 col2 col3 /vendor
-col1.1 col2.1 col3.1 /vendor 
+col1 col2 col3 '/vendor'
+col1.1 col2.1 col3.1 '/vendor' 
 vendor_path_parents
 }	
+
+test_config_vendor_path_parents_quoted(){
+cat <<vendor_path_parents
+'col1' 'col2' 'col3'
+'col1.1' 'col2.1' 'col3.1'
+vendor_path_parents
+}	
+
+test_config_vendor_path_parents_with_vendor_quoted(){
+cat <<vendor_path_parents
+'col1' 'col2' 'col3' '/vendor'
+'col1.1' 'col2.1' 'col3.1' '/vendor' 
+vendor_path_parents
+}	
+
+
 
 config_executeable  "$(dirname "${BASH_SOURCE[0]}")" 
 

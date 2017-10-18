@@ -59,18 +59,28 @@ config_setting_iterate(){
 	while read -r entry; do
 		eval set -- $entry
 		if ! config_install "$1" "$2" "$3" "$4"; then
-			echo "type='error' msg='component install failed' relPath='$1' repro='$2' version='$3' vendorDir='$4'" >&2
+			echo "type='error' msg='component install failed' relPath='$1' repo='$2' version='$3' vendorDir='$4'" >&2
 		fi
 	done
 }
 
 config_install(){
 	local -r relPath="$1"
-	local -r repro="$2"
+	local -r repo="$2"
 	local -r ver="$3"
 	local -r parentPath="$4"
-	local -r reproPath="$parentPath/$relPath"
+	local -r repoPath="$parentPath/$relPath"
 
-	mkdir -p  "$reproPath"
-	wget -O - "$repro/tarball/$ver" | tar -xz --strip 1 -C "$reproPath"
+	local -r compWildcard="$(config_component_part "$repo")"'*/component'
+	mkdir -p  "$repoPath"
+	wget -O - "$repo/tarball/$ver" | tar -xz --strip-component=2 -C "$repoPath" --wildcards $compWildcard
+}
+
+config_component_part(){
+	local -r repo="$1"
+
+	local -r repoName="$(basename "$repo")"
+	local gitUser="$(dirname "$repo")"
+	gitUser="$(basename "$gitUser")"
+	echo "${gitUser}-${repoName}"
 }

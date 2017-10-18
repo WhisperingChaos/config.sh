@@ -1,0 +1,10 @@
+# ignore temporary files #
+##########################
+*.swp
+*~
+
+# ignore vendored components - ones contributed by other repositories #
+#######################################################################
+test/base
+test/composer
+component/composer

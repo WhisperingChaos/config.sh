@@ -75,6 +75,9 @@ cat <<vendor_path_parents
 vendor_path_parents
 }	
 
+test_config_component_part(){
+	assert_true 'config_component_part "https://github.com/WhisperingChaos/assert.include.sh" | assert_output_true "echo WhisperingChaos-assert.include.sh"'
+}
 
 
 config_executeable  "$(dirname "${BASH_SOURCE[0]}")" 
@@ -84,3 +87,4 @@ config_executeable  "$(dirname "${BASH_SOURCE[0]}")"
 test_config_vendor_file_banner_detected
 test_config_vendor_file_entries
 test_config_vendor_path_append
+test_config_component_part

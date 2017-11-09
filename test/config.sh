@@ -75,16 +75,102 @@ cat <<vendor_path_parents
 vendor_path_parents
 }	
 
+test_config_section_found(){
+	assert_true test_config_section_found_true
+	assert_true test_config_section_found_true_section_begins_with_less_at_least_3_characters
+	assert_true test_config_section_found_true_section_qualifier_between_words
+	assert_false test_config_section_found_false_section_name_contains_illegal_characters
+	assert_false test_config_section_found_false_section_name_starts_with_period
+	assert_false test_config_section_found_false_section_name_ends_with_period
+	assert_false test_config_section_found_false_section_begins_with_less_than_2_characters
+}
+test_config_section_found_true(){
+	local rtnSectionNm
+	local rtnStrip
+	local rtnWildcards
+
+	config_section_found "[test] --strip-component 2 --wildcards '*/component'" 'rtnSectionNm' 'rtnStrip' 'rtnWildcards' || return 1
+	assert_true '[[ "$rtnSectionNm" == "test" ]]'
+	assert_true	'[[ "$rtnStrip" == "2" ]]'
+	assert_true '[[ "$rtnWildcards" == "*/component" ]]'
+}
+test_config_section_found_true_section_begins_with_less_at_least_3_characters(){
+	local rtnSectionNm
+	local rtnStrip
+	local rtnWildcards
+
+	config_section_found "[tes] --strip-component 2 --wildcards '*/component'" 'rtnSectionNm' 'rtnStrip' 'rtnWildcards' || return 1
+	assert_true '[[ "$rtnSectionNm" == "tes" ]]'
+	assert_true	'[[ "$rtnStrip" == "2" ]]'
+	assert_true '[[ "$rtnWildcards" == "*/component" ]]'
+}
+test_config_section_found_true_section_qualifier_between_words(){
+	local rtnSectionNm
+	local rtnStrip
+	local rtnWildcards
+
+	config_section_found "[tes.it] --strip-component 2 --wildcards '*/component'" 'rtnSectionNm' 'rtnStrip' 'rtnWildcards' || return 1
+	assert_true '[[ "$rtnSectionNm" == "tes.it" ]]'
+	assert_true	'[[ "$rtnStrip" == "2" ]]'
+	assert_true '[[ "$rtnWildcards" == "*/component" ]]'
+}
+
+test_config_section_found_false_section_name_contains_illegal_characters(){
+	local rtnSectionNm
+	local rtnStrip
+	local rtnWildcards
+
+	config_section_found "[test!] --strip-component 2 --wildcards '*/component'" 'rtnSectionNm' 'rtnStrip' 'rtnWildcards'
+}
+test_config_section_found_false_section_name_starts_with_period(){
+	local rtnSectionNm
+	local rtnStrip
+	local rtnWildcards
+
+	config_section_found "[.test] --strip-component 2 --wildcards '*/component'" 'rtnSectionNm' 'rtnStrip' 'rtnWildcards'
+}
+test_config_section_found_false_section_name_ends_with_period(){
+	local rtnSectionNm
+	local rtnStrip
+	local rtnWildcards
+
+	config_section_found "[test.] --strip-component 2 --wildcards '*/component'" 'rtnSectionNm' 'rtnStrip' 'rtnWildcards'
+}
+test_config_section_found_false_section_begins_with_less_than_2_characters(){
+	local rtnSectionNm
+	local rtnStrip
+	local rtnWildcards
+
+	config_section_found "[te] --strip-component 2 --wildcards '*/component'" 'rtnSectionNm' 'rtnStrip' 'rtnWildcards'
+}
+
+
+
+
 test_config_component_part(){
 	assert_true 'config_component_part "https://github.com/WhisperingChaos/assert.include.sh" | assert_output_true "echo WhisperingChaos-assert.include.sh"'
+}
+
+test_config_msg_error(){
+	assert_true 'test_config_msg_error_generate | assert_output_true test_config_msg_error_expected'
+}
+test_config_msg_error_generate(){
+	config_msg_error "testing error message" 2>&1 
+}
+
+test_config_msg_error_expected(){
+	# note test probably failed due to deleted/added lines added to assert.include.sh
+	echo "error: msg='testing error message' func_name='test_config_msg_error_generate' line_no=52 source_file='./config.sh' time=.*"
 }
 
 main(){
 	config_executeable  "$(dirname "${BASH_SOURCE[0]}")" 
 	# invoke tests
-	test_config_vendor_file_banner_detected
-	test_config_vendor_file_entries
-	test_config_vendor_path_append
-	test_config_component_part
+	test_config_section_found
+#	test_config_vendor_file_banner_detected
+#	test_config_vendor_file_entries
+#	test_config_vendor_path_append
+#	test_config_component_part
+#	test_config_msg_error
 }
 main

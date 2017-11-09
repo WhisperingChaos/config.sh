@@ -5,19 +5,23 @@
 source "$(dirname "${BASH_SOURCE[0]}")"/config.include.sh
 
 main(){
-	local -r myRoot="$1"
-	# minimally compose myself
-	config_myself "$myRoot"
-	if ! [ -d "$myRoot/composer" ]; then
-		# stop when executing myself to compose myself
-	   	return
-   	fi
+	local -r myRootDir="$1"
+	local -r rootDir="$2"
+	local -r configMyself="$3"
+
+	# minimally configure myself
+	if [ "$configMyself" == 'true' ]; then
+		config_myself "$myRootDir"
+		return
+	fi
 	# now fully compose myself because others are using me to
 	# compose themselves
 	for mod in $( "$myRoot/composer/composer.sh" "$myRoot"); do
 		source "$mod"
 	done
+	# config all components
+	config_tree_depth_first "$rootDir"
 }
 
-main "$(dirname ${BASH_SOURCE[0]})"
+main "$(dirname ${BASH_SOURCE[0]})" "${@}"
 

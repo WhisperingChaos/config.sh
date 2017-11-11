@@ -10,21 +10,48 @@ config_executeable(){
 	source "$myRoot/config.include.sh"
 }
 
-test_config_vendor_file_banner_detected(){
-	assert_true "echo '#<vendor.config:1.0>' | config_vendor_file"
-	assert_true 'test_config_vendor_file_banner_white_space | config_vendor_file'
-	assert_true 'test_config_vendor_file_banner_detect_anywhere | config_vendor_file'
-	assert_false "echo '#<vendor.config:.0>' | config_vendor_file"
-	assert_false "echo 'bad#<vendor.config:.0>' | config_vendor_file"
+test_config_vendor_banner_detected(){
+	assert_true "echo '#<vendor.config:1.0>' | config_vendor_banner_detected"
+	assert_true 'test_config_vendor_banner_white_space | config_vendor_banner_detected'
+	assert_false "echo '#<vendorxconfig:1.0>' | config_vendor_banner_detected"
+
+	assert_false 'test_config_vendor_banner_not_first | config_vendor_banner_detected'
+	assert_false "echo '#<vendor.config:.0>' | config_vendor_banner_detected"
+	assert_false "echo 'bad#<vendor.config:.0>' | config_vendor_banner_detected"
 }
 
-test_config_vendor_file_banner_white_space(){
+test_config_vendor_banner_white_space(){
 	echo ' 	#<vendor.config:1.0>' 
 }
 
-test_config_vendor_file_banner_detect_anywhere(){
+test_config_vendor_banner_not_first(){
 	echo '# hi there!'
 	echo '#<vendor.config:1.0>' 
+}
+
+test_config_vendor_read(){
+	local pasTempFileNm
+	test_config_vendor_temp_file_create test_config_vendor_file_empty 'pasTempFileNm'
+	assert_true  "echo '$pasTempFileNm' | config_vendor_read | assert_output_true  test_config_vendor_file_vendorDir '$pasTempFileNm'" 
+}
+#test_config_vendor_file_stream(){
+#	local -r vendorGen="$1"
+#	local rtnTempFileNm
+#	test_config_vendor_temp_file_create "$vendorGen" 'pasTempFileNm'
+#}
+
+test_config_vendor_temp_file_create(){
+	local -r vendorGen="$1"
+	local -r rtnTempFileNm="$2"
+	local -r tmpVendor=$(mktemp --tmpdir test_config_vendor.XXXXXXXXXX)'/vendor.config'
+	assert_true "'$vendorGen' > '$tmpVendor'"
+	eval $rtnTempFileNm=tmpVendor
+}
+test_config_vendor_file_empty(){
+}
+test_config_vendor_file_vendorDir(){
+	local vendorFileNm="$1"
+	echo "$config_VENDOR_FILE_SCOPE_MARK unset vendorDir; local -r vendorDir='$(dirname "$vendorFileNm")'"
 }
 
 test_config_vendor_file_entries(){
@@ -166,8 +193,8 @@ test_config_msg_error_expected(){
 main(){
 	config_executeable  "$(dirname "${BASH_SOURCE[0]}")" 
 	# invoke tests
-	test_config_section_found
-#	test_config_vendor_file_banner_detected
+#	test_config_section_found
+	test_config_vendor_banner_detected
 #	test_config_vendor_file_entries
 #	test_config_vendor_path_append
 #	test_config_component_part

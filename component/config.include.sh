@@ -45,14 +45,17 @@ config_vendor_read(){
 
 	local vendorFilePath
 	while read -r vendorFilePath; do
-		echo "$config_VENDOR_FILE_SCOPE_MARK"'unset vendorDir; local -r vendorDir="'$(dirname "$vendorFilePath")'";'
+		if ! [ -s "$vendorFilePath" ]; then
+			continue
+		fi
+		echo "$config_VENDOR_FILE_SCOPE_MARK"'unset vendorDir; local -r vendorDir='"'$(dirname "$vendorFilePath")'"';'
 		cat $vendorFilePath
 	done
 }
 config_vendor_whitespace_exclude(){
 
-	local -r config_VENDOR_COMMENT_DETECTOR='^[[:space:]]*# ]]'
-	local -r config_VENDOR_BLANK_LINE_DETECTOR='^[[:space:]]*$ ]]'
+	local -r config_VENDOR_COMMENT_DETECTOR='^[[:space:]]*#.*$'
+	local -r config_VENDOR_BLANK_LINE_DETECTOR='^[[:space:]]*$'
 	local -r markLen=${#config_VENDOR_FILE_SCOPE_MARK}
 	local -i lineNum=0
 	local config

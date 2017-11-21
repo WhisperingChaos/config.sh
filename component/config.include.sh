@@ -155,44 +155,56 @@ config_section_settings_extract(){
 	local -r rtnStripVal="$3"
 	local -r rtnWildcardsVal="$4"
 
+	local paspasStripVal
+   	local paspasWildcardsVal
+	if ! config__section_settings_extract "$sectionDefMaybe" "$rtnSectionDefs" 'paspasStripVal' 'paspasWildcardsVal'; then
+		return 1
+	fi
+	eval $rtnStripVal\=\"\$paspasStripVal\"
+	eval $rtnWildcardsVal\=\"\$paspasWildcardsVal\"
+}
+config__section_settings_extract(){
+	local -r sectionDefMaybe="$1"
+	local -r rtnSectionDefs="$2"
+	local -r rtnStripVal="$3"
+	local -r rtnWildcardsVal="$4"
+
 	local pasSectionNm
 	local pasStripIs
 	local pasStripVal
 	local pasWildcardsIs
 	local pasWildcardsVal
-	if ! eval config_section_parse "$sectionDefMaybe" 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'; then
+	if ! config_section_parse "$sectionDefMaybe" 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'; then
 		false
 		return
 	fi
 	local sectionDef
 	if  [ "$pasStripIs" == 'true' ]; then
-		if ! [[ "$pasStripVal" =~ ^0|^[1-9]+[[:isdigit:]]* ]]; then
+		if ! [[ "$pasStripVal" =~ ^0$|^[1-9]+[0-9]* ]]; then
 			config_msg_error "'invalid tar --strip-component value - should be positive integer' value='$pasStripVal'"
 			false
 			return
 		fi
-		sectionDef='local -ri stripDefVal='"$pasStripVal\;"
+		sectionDef='local -ri stripDefVal='"$pasStripVal"';'
 	fi
-	if [ "$rtnWildcardIs" == 'true' ]; then
-		sectionDef="$sectionDef"'local -r wildcardsDef='"'$pasWildcardsVal';"
+	if [ "$pasWildcardsIs" == 'true' ]; then
+		sectionDef="$sectionDef"'local -r wildcardsDefVal='"'$pasWildcardsVal';"
 	fi
 	if [ -z "$sectionDef" ]; then
 		# nothing defined by section :: check for prior definition
-		eval sectionDef=\"\$\{$rtnSectionDefs\[\$sectionNm\]\"
+		eval sectionDef=\"\$\{$rtnSectionDefs\[\$pasSectionNm\]\}\"
 	else
 		# define new or replace existing section
 		# a section without variable values isn't stored
-		eval \$\{$rntSectionDefs\[\$sectionNm\]\"\=\"\$sectionDef\"
+		eval $rtnSectionDefs\[\$pasSectionNm\]\=\"\$sectionDef\"
 	fi
 	# either no prior definition or a definition that has variables
 	# no prior definition assume no strip or wildcards
-	# locally expose strip and wildcards variables, if they exist 
+	# locally expose strip and wildcards variables, if they exist
 	eval $sectionDef
 	
-	unset pasStripVal
-	eval $rtnStripVal=\"\$stripDefVal\"
-	unset pasWildcardsVal
-	eval $rtnWildcardVal=\"\$wildcardsDefVal\"
+	eval $rtnStripVal\=\"\$stripDefVal\"
+	eval $rtnWildcardsVal\=\"\$wildcardsDefVal\"
 	true
 }
 config_section_parse(){
@@ -215,12 +227,14 @@ config_section_parse(){
 	local optVal
 	eval set -- $opts
 	while [[ $# -gt 0 ]]; do
-		shiftCnt=2
+		shiftCnt=1
 		optVal="$2"
-		if [ "${2:1:2}" == '--' ]; then
+		if [ "${2:0:2}" == '--' ]; then
 			# only options start with --
-			shiftCnt=1
 			optVal=""
+		elif [[ $# -gt 1 ]]; then
+			# prevent wrap around to start
+			shiftCnt=2
 		fi	   
 		case $1 in
 			--strip-component)
@@ -243,7 +257,7 @@ config_section_parse(){
 	eval $rntStripIs=\"\$stripIs\"
 	eval $rntStripVal=\"\$stripVal\"
 	eval $rntWildcardsIs=\"\$wildcardsIs\"
-	eval $rntWildcardsVal=\"\wildcardsVal\"
+	eval $rntWildcardsVal=\"\$wildcardsVal\"
 	true
 }
 config_install(){
@@ -256,17 +270,28 @@ config_install(){
 
 	local tarOpts
 	if [ -n "$stripVal" ]; then
-		tarOpts=' --strip-component='"$stripVal"
+		tarOpts='--strip-component='"$stripVal"
 	fi
 	if [ -n "$wildcardsVal" ]; then
 		tarOpts=$tarOpts' --wildcards '"'$wildcardsVal'"
 	fi
 
-	local -r repoPath="$vendorDir/$relPath"
-	mkdir -p  "$repoPath"
+	local -r reproPath="$vendorDir/$relPath"
 
-	wget -O - "$repo/tarball/$ver" | eval tar \-xz \-C \"\$repoPath\" $tarOpts
+	config_component_download "$repo/tarball/$ver" "$reproPath" "$tarOpts"
 }
+config_component_download(){
+	local -r repoVerUrl="$1"
+	local -r componentLocalPath="$2"
+	local -r tarOpts="$3"
+
+	if mkdir -p  "$componentLocalPath"; then
+		config_msg_error "'failed to create local path' componentLocalPath='$componentLocalPath'"
+		return 1
+	fi
+	wget -O - "$repoVerUrl" | eval tar \-xz \-C \"\$componentLocalPath\" $tarOpts
+}
+
 config_msg_error() {
 	# due to bootstrap nature of config, better to replicate code than include it
 	echo "error: msg='$1' func_name='${FUNCNAME[1]}' line_no=${BASH_LINENO[1]} source_file='${BASH_SOURCE[1]}' time='$(date --iso-8601=ns)'" >&2

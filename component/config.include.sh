@@ -1,9 +1,8 @@
 #!/bin/bash
 config_VENDOR_MARK_DETECTOR='^[[:space:]]*#<vendor\.config:([[:alnum:]]+[.-][[:alnum:]]+)+>$'
-config_VENDOR_LINENO_DETECTOR='^([[:digit:]])+[ ]'
-config_VENDOR_SECTION_DETECTOR='\[([[:alpha:]][[:alnum:]]+([[:alnum:]]+\.[[:alnum:]]+|[[:alnum:]])+)\](.*)$'
+config_VENDOR_LINENO_DETECTOR='^([0-9]+)[\ ]'
+config_VENDOR_SECTION_DETECTOR='^\[([[:alpha:]][[:alnum:]]+([[:alnum:]]+\.[[:alnum:]]+|[[:alnum:]])+)\](.*)$'
 config_VENDOR_FILE_SCOPE_MARK='||||FILE_SCOPE||||'
-config_VENDOR_BASH_SNIPPETS_MARK='[BASH_SNIPPETS]'
 
 config_tree_depth_first(){
 	local -r rootDir="$1"
@@ -21,7 +20,10 @@ config_vendor_file_search(){
 	while read -r configPath; do
 
 		if head -n 1 $configPath | config_vendor_banner_detected; then 
-			echo "$configPath"			
+			echo "cat $configPath"			
+		fi
+		if head -n 2 $configPath | config_vendor_bash_mark | config_vendor_banner_detected; then 
+			echo "source $configPath"			
 		fi
 
 		for subDir in $(ls -d "$vendorDir/"*/ 2>/dev/null); do
@@ -32,27 +34,52 @@ config_vendor_file_search(){
 config_vendor_banner_detected(){
 
 	local config
-	if read -r config; then
-		if [[ $config =~ $config_VENDOR_MARK_DETECTOR ]]; then
-			true
-			return
-   		fi
+	if ! read -r config; then
+		false
+		return
 	fi
-	false
+	if ! [[ $config =~ $config_VENDOR_MARK_DETECTOR ]]; then
+		false
+		return
+   	fi
+	true
 	return
+}
+config_vendor_bash_mark(){
+
+	local config
+	if ! read -r config; then
+		false
+		return
+	fi
+	if ! [[ "$config" =~ ^\#\!/bin/bash[[:space:]]*$ ]]; then
+		false
+		return
+	fi
+	if ! read -r config; then
+		false
+		return
+	fi
+	echo "$config"
+	true
 }
 config_vendor_read(){
 
-	local vendorFilePath
-	while read -r vendorFilePath; do
-		if ! [ -s "$vendorFilePath" ]; then
+	local command
+	while read -r commandd; do
+		if ! [ -s "$command" ]; then
 			continue
 		fi
+		if ! [[ "$command" =~ ^(cat|source)[\ ](.+)$ ]]; then
+			config_msg_error "'logic error - malformed command' command='$vendorFilePath'"
+			exit 1
+		fi
+		local vendorFilePath="${BASH_REMATCH[2]}"
 		echo "$config_VENDOR_FILE_SCOPE_MARK"'unset vendorDir; local -r vendorDir='"'$(dirname "$vendorFilePath")'"';'
-		cat $vendorFilePath
+		$command
 	done
 }
-config_vendor_whitespace_exclude(){
+onfig_vendor_whitespace_exclude(){
 
 	local -r config_VENDOR_COMMENT_DETECTOR='^[[:space:]]*#.*$'
 	local -r config_VENDOR_BLANK_LINE_DETECTOR='^[[:space:]]*$'
@@ -76,7 +103,7 @@ config_vendor_whitespace_exclude(){
 config_entry_iterate(){
 
 	local -A pasSectionDefs
-	config_section_default_bash_component 'sectionDefs'
+	config_section_default_bash_component 'pasSectionDefs'
 
 	local -r markLen=${#config_VENDOR_FILE_SCOPE_MARK}
 	local pasStrip
@@ -86,46 +113,34 @@ config_entry_iterate(){
 	local lineNum
 	local entry
 	while read -r entry; do
-		if [ "${entry:1:$markLen}" == "$config_VENDOR_FILE_SCOPE_MARK" ]; then
+		if [ "${entry:0:$markLen}" == "$config_VENDOR_FILE_SCOPE_MARK" ]; then
 			# extract file scope variables
 			entry=${entry:$markLen}
 			# declare file level variables and extablish their values
 			eval $entry
 			continue
 		fi
-		if [[ "$entry" =~ ${config_VENDOR_LINENO_DETECTOR}(.+) ]]; then
-			config_msg_error "'internal line number missing - error in program' vendorDir='$vendorDir' lineNum='$lineNum' entry='$entry'"
+		if ! [[ "$entry" =~ ${config_VENDOR_LINENO_DETECTOR}(.+) ]]; then
+			config_msg_error "'internal line number missing - error in program'" \
+			" vendorDir='$vendorDir' lineNum='$lineNum' entry='$entry'"
 			exit 1
 		fi
 		lineNum="${BASH_REMATCH[1]}"
 		entry="${BASH_REMATCH[2]}"
-		if [[ "$entry" =~ ^($config_VENDOR_BASH_SNIPPETS_MARK)(.*) ]]; then
-			# extract bash snippets - hopefully only environment variable declarations
-			entry=${BASH_REMATCH[2]}
-			# execute bash snippets - variable declarations and extablish their values
-			# since arbitary bash code executing here, it can cause all types of issues
-			# but flexibility to define variables and values that can be reused when
-			# defining a column's values is too inticing
-			eval $entry
-			if [ "$?" -ne 0 ]; then
-				config_msg_error "'error(s) while processing [BASH_SNIPPETS]'" \
-				" vendorDir='$vendorDir' lineNum='$lineNum' entry='$entry'"
-				exit 1
-			fi
-			continue
-		fi
-		if [[ "$entry" =~ ^$config_VENDOR_SECTION_DETECTOR ]]; then
-			if ! config_section_definition "$entry" 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'; then
-				config_msg_error "'error(s) while processing section definition' vendorDir='$vendorDir' lineNum='$lineNum'"
+		if [[ "$entry" =~ $config_VENDOR_SECTION_DETECTOR ]]; then
+			if ! config_section_settings_extract "$entry" 'pasSectionDefs' \
+			   	'pasStripVal' 'pasWildcardsVal'; then
+				config_msg_error "'error(s) while processing section definition'" \
+				" vendorDir='$vendorDir' lineNum='$lineNum'"
 				exit 1
 			fi
 			stripCurr="$pasStripVal"
 			wildcardsCurr="$pasWildcardsVal"
 			continue
 		fi
-		eval set -- $entry
+		set -- $entry
 		if [ "$#" -ne "3" ]; then 
-			cofig_msg_error "'expecting exactly three columns:" \
+			config_msg_error "'expecting exactly three columns:" \
 			" Relative Path, Github Repro Download URL, Version'" \
 			" vendorDir='$vendorDir' lineNum='$lineNum' actualColms='$#' entry='$entry'"
 			continue
@@ -140,11 +155,11 @@ config_entry_iterate(){
 config_section_default_bash_component(){
 	local rtnSectionDefs="$1"
 
-	local stripVal
-	local wildcardsVal
-
-	local sectionDefault="[whsiperingchaos.bash.component] --strip-component 2 --wildcard '*/component'"
-	if ! eval config_section_settings_extract \"\$sectionDefault\" \'$rtnSectionDefs\' \'stripVal\' \'wildcardsVal\'; then
+	local pasStripVal
+	local pasWildcardsVal
+	local sectionDefault="[whsiperingchaos.bash.component] --strip-component 2 --wildcards '*/component'"
+	if ! config_section_settings_extract "$sectionDefault" "$rtnSectionDefs" \
+	   	'pasStripVal' 'pasWildcardsVal'; then
 		config_msg_error "Failed to parse default section settings='$sectionDefault'"
 		exit 1
 	fi
@@ -157,7 +172,8 @@ config_section_settings_extract(){
 
 	local paspasStripVal
    	local paspasWildcardsVal
-	if ! config__section_settings_extract "$sectionDefMaybe" "$rtnSectionDefs" 'paspasStripVal' 'paspasWildcardsVal'; then
+	if ! config__section_settings_extract "$sectionDefMaybe" "$rtnSectionDefs" \
+	   	'paspasStripVal' 'paspasWildcardsVal'; then
 		return 1
 	fi
 	eval $rtnStripVal\=\"\$paspasStripVal\"
@@ -174,14 +190,16 @@ config__section_settings_extract(){
 	local pasStripVal
 	local pasWildcardsIs
 	local pasWildcardsVal
-	if ! config_section_parse "$sectionDefMaybe" 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'; then
+	if ! config_section_parse "$sectionDefMaybe" 'pasSectionNm' 'pasStripIs' \
+	   	'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'; then
 		false
 		return
 	fi
 	local sectionDef
 	if  [ "$pasStripIs" == 'true' ]; then
 		if ! [[ "$pasStripVal" =~ ^0$|^[1-9]+[0-9]* ]]; then
-			config_msg_error "'invalid tar --strip-component value - should be positive integer' value='$pasStripVal'"
+			config_msg_error "'invalid tar --strip-component value" \
+			" - should be positive integer' value='$pasStripVal'"
 			false
 			return
 		fi
@@ -286,7 +304,8 @@ config_component_download(){
 	local -r tarOpts="$3"
 
 	if mkdir -p  "$componentLocalPath"; then
-		config_msg_error "'failed to create local path' componentLocalPath='$componentLocalPath'"
+		config_msg_error "'failed to create local path'" \
+		" componentLocalPath='$componentLocalPath'"
 		return 1
 	fi
 	wget -O - "$repoVerUrl" | eval tar \-xz \-C \"\$componentLocalPath\" $tarOpts

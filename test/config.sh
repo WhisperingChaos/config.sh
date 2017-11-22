@@ -43,7 +43,7 @@ test_config_vendor_temp_file_reading(){
 	test_vendorGenOut_wrapper(){
 		$vendorGenOut "$pasTempFileNm"
 	}
-	echo "$pasTempFileNm" | config_vendor_read | assert_output_true test_vendorGenOut_wrapper
+	echo "cat $pasTempFileNm" | config_vendor_read | assert_output_true test_vendorGenOut_wrapper
 
 	local -i returnCd=$?
 	local -r tmpDirPrefix='/tmp/' 
@@ -389,19 +389,39 @@ test_config_install_with_strip_wildcards(){
 	local opts="--strip-component=5 --wildcards 'config.include.sh'"
 	assert_true '[[ "$pasTarOpts" == "$opts" ]]'
 }
-test_config_entry_iterate(){
-}
-test_config_vendor_path_append(){
+test_config_section_default_bash_component(){
+	local -A pasSectionDefs
+	assert_true "config_section_default_bash_component 'pasSectionDefs'" 
+	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
+	local expected='local -ri stripDefVal=2;local -r wildcardsDefVal='\''*/component'\'';'
+	assert_true '[[ "${pasSectionDefs[whsiperingchaos.bash.component]}" == "$expected" ]]'
 
-	assert_true 'test_config_vendor_path_parents | config_vendor_path_append "/vendor" | assert_output_true test_config_vendor_path_parents_with_vendor'
-	assert_true 'test_config_vendor_path_parents_quoted | config_vendor_path_append "/vendor" | assert_output_true test_config_vendor_path_parents_with_vendor_quoted'
+}
+test_config_entry_iterate(){
+
+	config_component_download(){
+		echo "$1" --- "$2" --- $3
+	}
+#	set -x
+	assert_true 'test_config_vendor_file_with_tilde_expansion | config_entry_iterate | assert_output_true test_config_vendor_file_with_tilde_expansion_out'  
+}
+test_config_vendor_file_with_tilde_expansion(){
+cat <<vendor_iterate_test
+$config_VENDOR_FILE_SCOPE_MARK local -r vendorDir='~/'
+1 [batch] --strip-component 1 --wildcards '*.include.sh'
+2 relComponentPath repoUrl repoVer
+3 relComponentPath1 repoUrl1 repoVer1
+4 \'relComponentPath2\' \'repoUrl2\' \'repoVer2\'
+vendor_iterate_test
 }	
-test_config_vendor_path_parents(){
-cat <<vendor_path_parents
-col1 col2 col3
-col1.1 col2.1 col3.1
-vendor_path_parents
+test_config_vendor_file_with_tilde_expansion_out(){
+cat <<vendor_iterate_test_out
+repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.include.sh'
+repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.include.sh'
+'repoUrl2'/tarball/'repoVer2' --- ~//'relComponentPath2' --- --strip-component=1 --wildcards '*.include.sh'
+vendor_iterate_test_out
 }	
+
 
 test_config_vendor_path_parents_with_vendor(){
 cat <<vendor_path_parents
@@ -460,6 +480,8 @@ main(){
 	test_config_section_parse
 	test_config_section_settings_extract
 	test_config_install
+	test_config_section_default_bash_component
+	test_config_entry_iterate
 #	test_config_vendor_file_entries
 #	test_config_vendor_path_append
 #	test_config_component_part

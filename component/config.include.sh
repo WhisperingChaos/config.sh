@@ -4,15 +4,15 @@ config_VENDOR_LINENO_DETECTOR='^([0-9]+)[\ ]'
 config_VENDOR_SECTION_DETECTOR='^\[([[:alpha:]][[:alnum:]]+([[:alnum:]]+\.[[:alnum:]]+|[[:alnum:]])+)\](.*)$'
 config_VENDOR_FILE_SCOPE_MARK='||||FILE_SCOPE||||'
 
-config_tree_depth_first(){
+config_vendor_tree_walk(){
 	local -r rootDir="$1"
 
-	config_vendor_file_search "$rootDir" \
+	config_vendor_file_search_depth_first "$rootDir" \
 	| config_vendor_read \
    	| config_vendor_whitespace_exclude \
  	| config_vendor_entry_iterate
 }
-config_vendor_file_search(){
+config_vendor_file_search_depth_first(){
 	local -r rootDir="$1"
 
 	local configPath
@@ -22,12 +22,12 @@ config_vendor_file_search(){
 		if head -n 1 $configPath | config_vendor_banner_detected; then 
 			echo "cat $configPath"			
 		fi
-		if head -n 2 $configPath | config_vendor_bash_mark | config_vendor_banner_detected; then 
-			echo "source $configPath"			
+		if head -n 2 $configPath | config_vendor_shell_detected; then 
+			echo "subshell $configPath"			
 		fi
 
 		for subDir in $(ls -d "$vendorDir/"*/ 2>/dev/null); do
-			config_vendor_file_search "$subDir"
+			config_vendor_file_search_depth_first "$subDir"
 		done
 	done < <( ls "$rootDir/vendor.config" 2>/dev/null )
 }
@@ -45,41 +45,39 @@ config_vendor_banner_detected(){
 	true
 	return
 }
-config_vendor_bash_mark(){
-
+config_vendor_shell_detected(){
+	local -r config_VENDOR_BASH_DETECTOR='^\#\!/bin/bash([[:space:]]+.*$|$)'
+	local -r config_VENDOR_SH_DETECTOR='^\#\!/bin/sh([[:space:]]+.*$|$)'
 	local config
 	if ! read -r config; then
 		false
 		return
 	fi
-	if ! [[ "$config" =~ ^\#\!/bin/bash[[:space:]]*$ ]]; then
+	if ! [[ "$config" =~ $config_VENDOR_BASH_DETECTOR|$config_VENDOR_SH_DETECTOR ]]; then
 		false
 		return
 	fi
-	if ! read -r config; then
-		false
-		return
-	fi
-	echo "$config"
-	true
+	config_vendor_banner_detected 
 }
 config_vendor_read(){
 
 	local command
-	while read -r commandd; do
-		if ! [ -s "$command" ]; then
-			continue
-		fi
-		if ! [[ "$command" =~ ^(cat|source)[\ ](.+)$ ]]; then
+	while read -r command; do
+		if ! [[ "$command" =~ ^(cat|subshell)[\ ](.+)$ ]]; then
 			config_msg_error "'logic error - malformed command' command='$vendorFilePath'"
 			exit 1
 		fi
+		local commandOp="${BASH_REMATCH[1]}"
 		local vendorFilePath="${BASH_REMATCH[2]}"
 		echo "$config_VENDOR_FILE_SCOPE_MARK"'unset vendorDir; local -r vendorDir='"'$(dirname "$vendorFilePath")'"';'
-		$command
+		if [ "$commandOp" == 'subshell' ]; then
+			( "$vendorFilePath" )
+		else	
+			$command
+		fi
 	done
 }
-onfig_vendor_whitespace_exclude(){
+config_vendor_whitespace_exclude(){
 
 	local -r config_VENDOR_COMMENT_DETECTOR='^[[:space:]]*#.*$'
 	local -r config_VENDOR_BLANK_LINE_DETECTOR='^[[:space:]]*$'
@@ -147,8 +145,8 @@ config_entry_iterate(){
 		fi	
 		if ! config_install "$1" "$2" "$3" "$vendorDir" "$stripCurr" "$wildcardsCurr"; then
 			config_msg_error "'component install failed'" \
-			" vendorDir='$vendorDir' lineNum='$lineNum' relPath='$1' repo='$2'"   \
-		   	" version='$3' vendorDir='$vendorDir' strip='$stripCurr' wildcards='$wildcardsCurr'"
+			" vendorDir='$vendorDir' lineNum='$lineNum' relPath='$1' repo='$2'" \
+			" version='$3' vendorDir='$vendorDir' strip='$stripCurr' wildcards='$wildcardsCurr'"
 		fi
 	done
 }
@@ -157,7 +155,7 @@ config_section_default_bash_component(){
 
 	local pasStripVal
 	local pasWildcardsVal
-	local sectionDefault="[whsiperingchaos.bash.component] --strip-component 2 --wildcards '*/component'"
+	local sectionDefault="[whisperingchaos.bash.component] --strip-component 2 --wildcards '*/component'"
 	if ! config_section_settings_extract "$sectionDefault" "$rtnSectionDefs" \
 	   	'pasStripVal' 'pasWildcardsVal'; then
 		config_msg_error "Failed to parse default section settings='$sectionDefault'"
@@ -206,7 +204,9 @@ config__section_settings_extract(){
 		sectionDef='local -ri stripDefVal='"$pasStripVal"';'
 	fi
 	if [ "$pasWildcardsIs" == 'true' ]; then
-		sectionDef="$sectionDef"'local -r wildcardsDefVal='"'$pasWildcardsVal';"
+		local wildcardsVal="$pasWildcardsVal"
+		config_single_quote_encapsulate 'wildcardsVal'
+		sectionDef="$sectionDef"'local -r wildcardsDefVal='"$wildcardsVal"';'
 	fi
 	if [ -z "$sectionDef" ]; then
 		# nothing defined by section :: check for prior definition
@@ -220,7 +220,7 @@ config__section_settings_extract(){
 	# no prior definition assume no strip or wildcards
 	# locally expose strip and wildcards variables, if they exist
 	eval $sectionDef
-	
+
 	eval $rtnStripVal\=\"\$stripDefVal\"
 	eval $rtnWildcardsVal\=\"\$wildcardsDefVal\"
 	true
@@ -243,7 +243,7 @@ config_section_parse(){
 	local wildcardsVal
 	local shiftCnt
 	local optVal
-	eval set -- $opts
+	set -- $opts
 	while [[ $# -gt 0 ]]; do
 		shiftCnt=1
 		optVal="$2"
@@ -254,7 +254,7 @@ config_section_parse(){
 			# prevent wrap around to start
 			shiftCnt=2
 		fi	   
-		case $1 in
+		case "$1" in
 			--strip-component)
 			stripIs='true'
 			stripVal="$optVal"
@@ -278,6 +278,11 @@ config_section_parse(){
 	eval $rntWildcardsVal=\"\$wildcardsVal\"
 	true
 }
+config_single_quote_encapsulate(){
+	eval local value=\"\$$1\"
+	value=${value//\'/\'\"\'\"\'}
+	eval $1=\"\'\$value\'\"
+}
 config_install(){
 	local -r relPath="$1"
 	local -r repo="$2"
@@ -291,7 +296,7 @@ config_install(){
 		tarOpts='--strip-component='"$stripVal"
 	fi
 	if [ -n "$wildcardsVal" ]; then
-		tarOpts=$tarOpts' --wildcards '"'$wildcardsVal'"
+		tarOpts=$tarOpts' --wildcards '"$wildcardsVal"
 	fi
 
 	local -r reproPath="$vendorDir/$relPath"
@@ -313,5 +318,11 @@ config_component_download(){
 
 config_msg_error() {
 	# due to bootstrap nature of config, better to replicate code than include it
-	echo "error: msg='$1' func_name='${FUNCNAME[1]}' line_no=${BASH_LINENO[1]} source_file='${BASH_SOURCE[1]}' time='$(date --iso-8601=ns)'" >&2
+	# therefore, it doesn't include the 'msg_' package
+	local msg
+	while [[ $# -gt 0 ]]; do
+		msg=$msg$1
+		shift
+	done
+	echo "error: msg='$msg' func_name='${FUNCNAME[1]}' line_no=${BASH_LINENO[1]} source_file='${BASH_SOURCE[1]}' time='$(date --iso-8601=ns)'" >&2
 }

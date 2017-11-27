@@ -80,11 +80,7 @@ test_config_vendor_temp_file_reading(){
 	echo "$readerOpt $pasTempFileNm" | config_vendor_read | assert_output_true test_vendorGenOut_wrapper
 
 	local -i returnCd=$?
-	local -r tmpDirPrefix='/tmp/' 
-	if [ "${pasTempFileNm:0:${#tmpDirPrefix}}" == "$tmpDirPrefix" ]; then
-		rm -rf $( dirname "$pasTempFileNm" )
-		(( returnCd = ( returnCd + $? )	))
-	fi
+	test_config_vendor_temp_file_destroy "$pasTempFileNm"
 	return $returnCd
 }
 test_config_vendor_temp_file_create(){
@@ -94,18 +90,26 @@ test_config_vendor_temp_file_create(){
 	assert_true "'$vendorGen' > '$tmpVendor'"
 	eval $rtnTempFileNm=\"\$tmpVendor\"
 }
+test_config_vendor_temp_file_destroy(){
+	local tmpDirName="$(dirname "$1")"
+	local -r tmpDirPrefix='/tmp/'
+	assert_halt
+	assert_true '[ "${tmpDirName:0:${#tmpDirPrefix}}" == "$tmpDirPrefix" ]'
+	assert_continue
+	rm -rf "$tmpDirName"
+}
 test_config_vendor_file_empty(){
 	return
 }
 test_config_vendor_file_empty_output(){
-	test_config_vendor_file_mark_gen "$1"
+	test_config_vendor_scope_mark_gen "$1"
 	return
 }
 test_config_vendor_file_one_entry(){
 	echo "column1 column2 colum3"
 }
 test_config_vendor_file_one_entry_output(){
-	test_config_vendor_file_mark_gen "$1"
+	test_config_vendor_scope_mark_gen "$1"
 	test_config_vendor_file_one_entry
 }
 test_config_vendor_file_two_entry(){
@@ -113,11 +117,11 @@ test_config_vendor_file_two_entry(){
 	test_config_vendor_file_one_entry
 }
 test_config_vendor_file_two_entry_output(){
-	test_config_vendor_file_mark_gen "$1"
+	test_config_vendor_scope_mark_gen "$1"
 	test_config_vendor_file_one_entry
 	test_config_vendor_file_one_entry
 }
-test_config_vendor_file_mark_gen(){
+test_config_vendor_scope_mark_gen(){
 	local vendorFileNm="$1"
 	echo "$config_VENDOR_FILE_SCOPE_MARK"'unset vendorDir; local -r vendorDir='"'$(dirname $vendorFileNm)'"';'
 }
@@ -132,42 +136,34 @@ test_config_file_bash_main
 bashFileDefinition
 }
 test_config_vendor_read_bash_output(){
-	test_config_vendor_file_mark_gen "$1"
+	test_config_vendor_scope_mark_gen "$1"
 	echo 'hellWorld column2 colum3'
-}
-test_config_vendor_file_entries(){
-	assert_true 'test_config_vendor_file_entries_single_line | config_vendor_file_entries | assert_output_true test_config_vendor_file_entries_single_line'
-	assert_true 'test_config_vendor_file_entries_single_line_comments | config_vendor_file_entries | assert_output_true test_config_vendor_file_entries_single_line'
-}
-
-test_config_vendor_file_entries_single_line(){
-	echo 'column1 column2 colum3'
 }
 test_config_vendor_whitespace_exclude(){
 	assert_true 'test_config_vendor_file_entries_single_line_comments | config_vendor_whitespace_exclude | assert_output_true "exit 0"'
 	#set -x
-	assert_true 'test_config_vendor_file_entries_marks_allow | config_vendor_whitespace_exclude | assert_output_true test_config_vendor_file_entries_marks_allow_output'
+	assert_true 'test_config_vendor_scope_mark_allow | config_vendor_whitespace_exclude | assert_output_true test_config_vendor_scope_mark_allow_output'
 	assert_true 'test_config_vendor_file_entries_single_line | config_vendor_whitespace_exclude | assert_output_true test_config_vendor_file_single_ws_output'
-
 }
 test_config_vendor_file_entries_single_line_comments(){
 	echo '#<vendor.config:1.0>'
 	echo '# my comment'
 	echo '# another comment'
 	echo '         '
+	echo
 }
-test_config_vendor_file_entries_marks_allow(){
-	test_config_vendor_file_mark_gen 'testdir/testfile'
-	echo "${config_VENDOR_BASH_SNIPPETS_MARK}local -r variableName='value'"
+test_config_vendor_scope_mark_allow(){
+	test_config_vendor_scope_mark_gen 'testdir/testfile'
 }
-test_config_vendor_file_entries_marks_allow_output(){
-	echo "1 $(test_config_vendor_file_mark_gen 'testdir/testfile')"
-	echo "2 ${config_VENDOR_BASH_SNIPPETS_MARK}local -r variableName='value'"
+test_config_vendor_scope_mark_allow_output(){
+	test_config_vendor_scope_mark_gen 'testdir/testfile'
+}
+test_config_vendor_file_entries_single_line(){
+	echo 'column1 column2 colum3'
 }
 test_config_vendor_file_single_ws_output(){
 	echo "1 $( test_config_vendor_file_entries_single_line )" 
 }
-
 test_config_section_parse(){
 	assert_true test_config_section_parse_all_good
 	assert_true test_config_section_parse_name_starts_with_at_least_3_characters
@@ -449,7 +445,9 @@ test_config_section_default_bash_component(){
 
 }
 test_config_entry_iterate(){
-
+	config_install_report(){
+		return
+	}
 	config_component_download(){
 		echo "$1" --- "$2" --- "$3"
 	}
@@ -550,7 +548,6 @@ repoUrl1/tarball/repoVer1 --- /home/dev//relComponentPath1 --- --strip-component
 'repoUrl2'/tarball/'repoVer2' --- /home/dev//'relComponentPath2' --- --strip-component=2 --wildcards '*/component'
 vendor_iterate_test
 }
-
 test_config_section_found(){
 	assert_true test_config_section_found_true
 	assert_true test_config_section_found_true_section_begins_with_less_at_least_3_characters
@@ -560,26 +557,54 @@ test_config_section_found(){
 	assert_false test_config_section_found_false_section_name_ends_with_period
 	assert_false test_config_section_found_false_section_begins_with_less_than_2_characters
 }
-
-test_config_component_part(){
-	assert_true 'config_component_part "https://github.com/WhisperingChaos/assert.include.sh" | assert_output_true "echo WhisperingChaos-assert.include.sh"'
-}
-
 test_config_msg_error(){
 	assert_true 'test_config_msg_error_generate | assert_output_true test_config_msg_error_expected'
 }
 test_config_msg_error_generate(){
 	config_msg_error "testing error message" 2>&1 
 }
-
 test_config_msg_error_expected(){
-	# note test probably failed due to deleted/added lines added to assert.include.sh
-	echo "error: msg='testing error message' func_name='test_config_msg_error_generate' line_no=52 source_file='./config.sh' time=.*"
+	echo "${assert_REGEX_COMPARE}error: msg='testing error message' func_name='test_config_msg_error_generate' line_no=[0-9]+ source_file='./config.sh' time=.*"
+}
+test_config_tree_walk(){
+	local myRoot="$1"
+
+	local pasTempFileNm
+	# reset any source changes
+	source "$myRoot/config.include.sh"
+	assert_true  "test_config_vendor_temp_file_create test_config_tree_walk_generate_one_component_vendor 'pasTempFileNm'"
+	assert_true 'config_vendor_tree_walk "$(dirname "$pasTempFileNm")"|assert_output_true test_config_tree_walk_generate_one_component_vendor_output' 
+	test_config_vendor_temp_file_destroy "$pasTempFileNm"
+	assert_true  "test_config_vendor_temp_file_create test_config_tree_walk_generate_bad_component_vendor 'pasTempFileNm'"
+	assert_true 'test_config_tree_walk_one_bad "$pasTempFileNm" 2>&1 |assert_output_true test_config_tree_walk_generate_bad_component_vendor_output' 
+	test_config_vendor_temp_file_destroy "$pasTempFileNm"
+}
+test_config_tree_walk_generate_one_component_vendor(){
+	cat <<'vendorfile'
+#<vendor.config:1.0>
+[whisperingchaos.bash.component]
+assert	https://github.com/WhisperingChaos/assert.include.sh master
+vendorfile
+}
+test_config_tree_walk_generate_one_component_vendor_output(){
+	echo "${assert_REGEX_COMPARE}^info\: msg\='Downloading \& installing repo\='https\://github\.com/WhisperingChaos/assert\.include\.sh' ver='master' to directory='/tmp/.+assert.*"
+}
+test_config_tree_walk_one_bad(){
+( config_vendor_tree_walk "$(dirname "$1")")
+}
+test_config_tree_walk_generate_bad_component_vendor(){
+	cat <<'vendorfile'
+#<vendor.config:1.0>
+[whisperingchaos.bash.component]
+assert	https://github.com/WhisperingChaos/doesnotexist master
+vendorfile
+}
+test_config_tree_walk_generate_bad_component_vendor_output(){
+	echo "${assert_REGEX_COMPARE}^info\: msg='Downloading \& installing repo\='https\://github.com/WhisperingChaos/doesnotexist' ver\='master' to directory\='/tmp/test_config_vendor.+/assert.*"
 }
 
 main(){
-	config_executeable  "$(dirname "${BASH_SOURCE[0]}")" 
-	# invoke teists
+	config_executeable "$(dirname "${BASH_SOURCE[0]}")" 
 	test_config_vendor_banner_detected
 	test_config_vendor_shell_detected
 	test_config_vendor_read
@@ -589,10 +614,8 @@ main(){
 	test_config_install
 	test_config_section_default_bash_component
 	test_config_entry_iterate
-#	test_config_vendor_file_entries
-#	test_config_vendor_path_append
-#	test_config_component_part
-#	test_config_msg_error
+	test_config_msg_error
+	test_config_tree_walk "$(dirname "${BASH_SOURCE[0]}")" 
 	assert_raised_check
 }
 main

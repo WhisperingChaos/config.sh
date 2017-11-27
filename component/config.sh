@@ -9,7 +9,7 @@ main(){
 
 	if [ -z "$rootDir" ]; then
 		# minimally configure myself
-		config_tree_depth_first "$(dirname ${BASH_SOURCE[0]})"
+		config_vendor_tree_walk "$(dirname ${BASH_SOURCE[0]})"
 		return
 	fi
 	# now fully compose myself because others are using me to
@@ -18,7 +18,7 @@ main(){
 		source "$mod"
 	done
 	# config all components rooted in this tree
-	config_tree_depth_first "$rootDir"
+	config_vendor_tree_walk "$rootDir"
 }
 
 main  "${@}"

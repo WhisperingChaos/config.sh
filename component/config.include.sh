@@ -10,7 +10,7 @@ config_vendor_tree_walk(){
 	config_vendor_file_search_depth_first "$rootDir" \
 	| config_vendor_read \
    	| config_vendor_whitespace_exclude \
- 	| config_vendor_entry_iterate
+	| config_entry_iterate
 }
 config_vendor_file_search_depth_first(){
 	local -r rootDir="$1"
@@ -26,7 +26,7 @@ config_vendor_file_search_depth_first(){
 			echo "subshell $configPath"			
 		fi
 
-		for subDir in $(ls -d "$vendorDir/"*/ 2>/dev/null); do
+		for subDir in $(ls -d "$rootDir/"*/ 2>/dev/null); do
 			config_vendor_file_search_depth_first "$subDir"
 		done
 	done < <( ls "$rootDir/vendor.config" 2>/dev/null )
@@ -85,7 +85,7 @@ config_vendor_whitespace_exclude(){
 	local -i lineNum=0
 	local config
 	while read -r config; do
-		if [ "${config:1:$markLen}" == "$config_VENDOR_FILE_SCOPE_MARK" ]; then
+		if [ "${config:0:$markLen}" == "$config_VENDOR_FILE_SCOPE_MARK" ]; then
 			# forward file scope variables
 			echo "$config"
 			continue
@@ -142,7 +142,8 @@ config_entry_iterate(){
 			" Relative Path, Github Repro Download URL, Version'" \
 			" vendorDir='$vendorDir' lineNum='$lineNum' actualColms='$#' entry='$entry'"
 			continue
-		fi	
+		fi
+		config_install_report "$1" "$2" "$3" "$vendorDir"
 		if ! config_install "$1" "$2" "$3" "$vendorDir" "$stripCurr" "$wildcardsCurr"; then
 			config_msg_error "'component install failed'" \
 			" vendorDir='$vendorDir' lineNum='$lineNum' relPath='$1' repo='$2'" \
@@ -299,21 +300,30 @@ config_install(){
 		tarOpts=$tarOpts' --wildcards '"$wildcardsVal"
 	fi
 
-	local -r reproPath="$vendorDir/$relPath"
-
-	config_component_download "$repo/tarball/$ver" "$reproPath" "$tarOpts"
+	local -r repoPath="$vendorDir/$relPath"
+	config_component_download "$repo/tarball/$ver" "$repoPath" "$tarOpts"
 }
+config_install_report(){
+	local -r relPath="$1"
+	local -r repo="$2"
+	local -r ver="$3"
+	local -r vendorDir="$4"
+
+   config_msg_info "Downloading & installing repo='$repo'"  \
+	  " ver='$3' to directory='$vendorDir/$relPath'"
+} 
 config_component_download(){
 	local -r repoVerUrl="$1"
 	local -r componentLocalPath="$2"
 	local -r tarOpts="$3"
 
-	if mkdir -p  "$componentLocalPath"; then
+	if ! mkdir -p  "$componentLocalPath"; then
 		config_msg_error "'failed to create local path'" \
 		" componentLocalPath='$componentLocalPath'"
 		return 1
 	fi
-	wget -O - "$repoVerUrl" | eval tar \-xz \-C \"\$componentLocalPath\" $tarOpts
+	wget --dns-timeout=5 --connect-timeout=10 --read-timeout=60 -O -  "$repoVerUrl" 2>/dev/null | eval tar \-xz \-C \"\$componentLocalPath\" $tarOpts \2\>\/dev\/null
+	[[ "${PIPESTATUS[0]}" && "${PIPESTATUS[1]}" ]]
 }
 
 config_msg_error() {
@@ -325,4 +335,14 @@ config_msg_error() {
 		shift
 	done
 	echo "error: msg='$msg' func_name='${FUNCNAME[1]}' line_no=${BASH_LINENO[1]} source_file='${BASH_SOURCE[1]}' time='$(date --iso-8601=ns)'" >&2
+}
+config_msg_info(){
+	
+	local msg
+	while [[ $# -gt 0 ]]; do
+		msg=$msg$1
+		shift
+	done
+
+	echo "info: msg='$msg'" 
 }

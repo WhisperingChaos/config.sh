@@ -9,7 +9,7 @@ main(){
 
 	if [ -z "$rootDir" ]; then
 		# minimally configure myself
-		config_vendor_tree_walk "$(dirname ${BASH_SOURCE[0]})"
+		config_vendor_tree_walk "$(dirname "${BASH_SOURCE[0]}")"
 		return
 	fi
 	# now fully compose myself because others are using me to

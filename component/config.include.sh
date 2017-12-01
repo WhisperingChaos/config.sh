@@ -69,7 +69,7 @@ config_vendor_read(){
 		fi
 		local commandOp="${BASH_REMATCH[1]}"
 		local vendorFilePath="${BASH_REMATCH[2]}"
-		echo "$config_VENDOR_FILE_SCOPE_MARK"'unset vendorDir; local -r vendorDir='"'$(dirname "$vendorFilePath")'"';'
+		echo "$config_VENDOR_FILE_SCOPE_MARK"'local vendorDir='"'$(dirname "$vendorFilePath")'"';'
 		if [ "$commandOp" = 'subshell' ]; then
 			( "$vendorFilePath" )
 		else	
@@ -115,6 +115,7 @@ config_entry_iterate(){
 			# extract file scope variables
 			entry=${entry:$markLen}
 			# declare file level variables and extablish their values
+			echo "entry: $entry" >&2
 			eval $entry
 			continue
 		fi

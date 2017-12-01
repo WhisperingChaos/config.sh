@@ -1,5 +1,5 @@
 #!/bin/bash
-config_VENDOR_MARK_DETECTOR='^[[:space:]]*#<vendor\.config:([[:alnum:]]+[.-][[:alnum:]]+)+>$'
+config_VENDOR_MARK_DETECTOR='^#<vendor\.config:([[:alnum:]]+[.-][[:alnum:]]+)+>$'
 config_VENDOR_LINENO_DETECTOR='^([0-9]+)[\ ]'
 config_VENDOR_SECTION_DETECTOR='^\[([[:alpha:]][[:alnum:]]+([[:alnum:]]+\.[[:alnum:]]+|[[:alnum:]])+)\](.*)$'
 config_VENDOR_FILE_SCOPE_MARK='||||FILE_SCOPE||||'
@@ -22,7 +22,7 @@ config_vendor_file_search_depth_first(){
 		if head -n 1 $configPath | config_vendor_banner_detected; then 
 			echo "cat $configPath"			
 		fi
-		if head -n 2 $configPath | config_vendor_shell_detected; then 
+		if head -n 2 $configPath | config_vendor_shebang_detected; then 
 			echo "subshell $configPath"			
 		fi
 
@@ -45,15 +45,15 @@ config_vendor_banner_detected(){
 	true
 	return
 }
-config_vendor_shell_detected(){
-	local -r config_VENDOR_BASH_DETECTOR='^\#\!/bin/bash([[:space:]]+.*$|$)'
-	local -r config_VENDOR_SH_DETECTOR='^\#\!/bin/sh([[:space:]]+.*$|$)'
+config_vendor_shebang_detected(){
+	local -r config_VENDOR_SHEBANG_MARK='#!/'
+	local -ri shebangLen=${#config_VENDOR_SHEBANG_MARK}
 	local config
 	if ! read -r config; then
 		false
 		return
 	fi
-	if ! [[ "$config" =~ $config_VENDOR_BASH_DETECTOR|$config_VENDOR_SH_DETECTOR ]]; then
+	if [ ${#config} -lt $shebangLen ] || [ "${config:0:$shebangLen}" != "$config_VENDOR_SHEBANG_MARK" ]; then
 		false
 		return
 	fi
@@ -70,7 +70,7 @@ config_vendor_read(){
 		local commandOp="${BASH_REMATCH[1]}"
 		local vendorFilePath="${BASH_REMATCH[2]}"
 		echo "$config_VENDOR_FILE_SCOPE_MARK"'unset vendorDir; local -r vendorDir='"'$(dirname "$vendorFilePath")'"';'
-		if [ "$commandOp" == 'subshell' ]; then
+		if [ "$commandOp" = 'subshell' ]; then
 			( "$vendorFilePath" )
 		else	
 			$command
@@ -81,11 +81,11 @@ config_vendor_whitespace_exclude(){
 
 	local -r config_VENDOR_COMMENT_DETECTOR='^[[:space:]]*#.*$'
 	local -r config_VENDOR_BLANK_LINE_DETECTOR='^[[:space:]]*$'
-	local -r markLen=${#config_VENDOR_FILE_SCOPE_MARK}
+	local -ri markLen=${#config_VENDOR_FILE_SCOPE_MARK}
 	local -i lineNum=0
 	local config
 	while read -r config; do
-		if [ "${config:0:$markLen}" == "$config_VENDOR_FILE_SCOPE_MARK" ]; then
+		if [ ${#config} -ge $markLen ] && [ "${config:0:$markLen}" = "$config_VENDOR_FILE_SCOPE_MARK" ]; then
 			# forward file scope variables
 			echo "$config"
 			continue
@@ -111,7 +111,7 @@ config_entry_iterate(){
 	local lineNum
 	local entry
 	while read -r entry; do
-		if [ "${entry:0:$markLen}" == "$config_VENDOR_FILE_SCOPE_MARK" ]; then
+		if [ ${#entry} -ge $markLen ] && [ "${entry:0:$markLen}" = "$config_VENDOR_FILE_SCOPE_MARK" ]; then
 			# extract file scope variables
 			entry=${entry:$markLen}
 			# declare file level variables and extablish their values
@@ -195,7 +195,7 @@ config__section_settings_extract(){
 		return
 	fi
 	local sectionDef
-	if  [ "$pasStripIs" == 'true' ]; then
+	if  [ "$pasStripIs" = 'true' ]; then
 		if ! [[ "$pasStripVal" =~ ^0$|^[1-9]+[0-9]* ]]; then
 			config_msg_error "'invalid tar --strip-component value" \
 			" - should be positive integer' value='$pasStripVal'"
@@ -204,7 +204,7 @@ config__section_settings_extract(){
 		fi
 		sectionDef='local -ri stripDefVal='"$pasStripVal"';'
 	fi
-	if [ "$pasWildcardsIs" == 'true' ]; then
+	if [ "$pasWildcardsIs" = 'true' ]; then
 		local wildcardsVal="$pasWildcardsVal"
 		config_single_quote_encapsulate 'wildcardsVal'
 		sectionDef="$sectionDef"'local -r wildcardsDefVal='"$wildcardsVal"';'
@@ -248,7 +248,7 @@ config_section_parse(){
 	while [[ $# -gt 0 ]]; do
 		shiftCnt=1
 		optVal="$2"
-		if [ "${2:0:2}" == '--' ]; then
+		if [ ${#optVal} -gt 2 ] && [ "${2:0:2}" = '--' ]; then
 			# only options start with --
 			optVal=""
 		elif [[ $# -gt 1 ]]; then

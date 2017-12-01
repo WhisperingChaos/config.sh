@@ -28,12 +28,12 @@ test_config_vendor_banner_not_first(){
 	echo '# hi there!'
 	echo '#<vendor.config:1.0>' 
 }
-test_config_vendor_shell_detected(){
-	assert_false 'test_config_vendor_bash_shebang | config_vendor_shell_detected'
-	assert_false 'test_config_vendor_bash_shebang_plus | config_vendor_shell_detected'
-	assert_true 'test_config_vendor_bash_shebang_vendor | config_vendor_shell_detected'
-	assert_false 'test_config_vendor_bash_vendor_shebang | config_vendor_shell_detected'
-	assert_false 'test_config_vendor_bad_shebang_vendor | config_vendor_shell_detected'
+test_config_vendor_shebang_detected(){
+	assert_false 'test_config_vendor_bash_shebang | config_vendor_shebang_detected'
+	assert_false 'test_config_vendor_bash_shebang_plus | config_vendor_shebang_detected'
+	assert_true 'test_config_vendor_bash_shebang_vendor | config_vendor_shebang_detected'
+	assert_false 'test_config_vendor_bash_vendor_shebang | config_vendor_shebang_detected'
+	assert_false 'test_config_vendor_bad_shebang_vendor | config_vendor_shebang_detected'
 }
 test_config_vendor_bash_shebang(){
 	echo "#!/bin/bash"
@@ -55,7 +55,7 @@ test_config_vendor_bash_vendor_shebang(){
 	echo "#!/bin/bash"
 }
 test_config_vendor_bad_shebang_vendor(){
-echo "#!/bin/bashs"
+echo "#!"
 echo '#<vendor.config:1.0>' 
 }
 test_config_vendor_read(){
@@ -606,7 +606,7 @@ test_config_tree_walk_generate_bad_component_vendor_output(){
 main(){
 	config_executeable "$(dirname "${BASH_SOURCE[0]}")" 
 	test_config_vendor_banner_detected
-	test_config_vendor_shell_detected
+	test_config_vendor_shebang_detected
 	test_config_vendor_read
 	test_config_vendor_whitespace_exclude
 	test_config_section_parse

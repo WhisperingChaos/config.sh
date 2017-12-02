@@ -123,7 +123,7 @@ test_config_vendor_file_two_entry_output(){
 }
 test_config_vendor_scope_mark_gen(){
 	local vendorFileNm="$1"
-	echo "$config_VENDOR_FILE_SCOPE_MARK"'unset vendorDir; local -r vendorDir='"'$(dirname $vendorFileNm)'"';'
+	echo "$config_VENDOR_FILE_SCOPE_MARK"'local vendorDir='"'$(dirname $vendorFileNm)'"';'
 }
 test_config_vendor_read_bash(){
 	cat <<'bashFileDefinition'
@@ -164,243 +164,115 @@ test_config_vendor_file_entries_single_line(){
 test_config_vendor_file_single_ws_output(){
 	echo "1 $( test_config_vendor_file_entries_single_line )" 
 }
-test_config_section_parse(){
-	assert_true test_config_section_parse_all_good
-	assert_true test_config_section_parse_name_starts_with_at_least_3_characters
-	assert_true test_config_section_parse_section_qualifier_between_words
-	assert_true test_config_section_parse_name_contains_illegal_characters
-	assert_true test_config_section_parse_name_starts_with_period
-	assert_true test_config_section_parse_name_ends_with_period
-	assert_true test_config_section_parse_name_less_than_3_characters
-	assert_true test_config_section_parse_name_values_empty
-	assert_true test_config_section_parse_name_strip_null
-	assert_true test_config_section_parse_name_both_null
-}
-test_config_section_parse_all_good(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-	assert_true	"config_section_parse '[test] --strip-component 2 --wildcards */component' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-	assert_true '[[ "$pasSectionNm" == "test" ]]'
-	assert_true '$pasStripIs'
-	assert_true	'[[ "$pasStripVal" == 2 ]]'
-	assert_true '$pasWildcardsIs'
-	assert_true '[[ "$pasWildcardsVal" == "*/component" ]]'
-}
-test_config_section_parse_name_starts_with_at_least_3_characters(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-
-	assert_true	"config_section_parse '[tes] --strip-component 2 --wildcards */component' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-	assert_true '[[ "$pasSectionNm" == "tes" ]]'
-	assert_true '$pasStripIs'
-	assert_true	'[[ "$pasStripVal" == "2" ]]'
-	assert_true '$pasWildcardsIs'
-	assert_true '[[ "$pasWildcardsVal" == "*/component" ]]'
-}
-test_config_section_parse_section_qualifier_between_words(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-
-	assert_true	"config_section_parse '[tes.it] --strip-component 2 --wildcards */component' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-	assert_true '[[ "$pasSectionNm" == "tes.it" ]]'
-	assert_true '$pasStripIs'
-	assert_true	'[[ "$pasStripVal" == "2" ]]'
-	assert_true '$pasWildcardsIs'
-	assert_true '[[ "$pasWildcardsVal" == "*/component" ]]'
-}
-
-test_config_section_parse_name_contains_illegal_characters(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-
-	assert_false	"config_section_parse '[tesiti!] --strip-component 2 --wildcards */component' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-}
-test_config_section_parse_name_starts_with_period(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-
-	assert_false	"config_section_parse '[.test] --strip-component 2 --wildcards */component' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-}
-test_config_section_parse_name_ends_with_period(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-
-	assert_false "config_section_parse '[test.] --strip-component 2 --wildcards */component' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-}
-test_config_section_parse_name_less_than_3_characters(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-
-	assert_false "config_section_parse '[te] --strip-component 2 --wildcards */component' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-}
-test_config_section_parse_name_values_empty(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-
-	assert_true "config_section_parse '[test.values] --strip-component  --wildcards' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-	assert_true '[[ "$pasSectionNm" == "test.values" ]]'
-	assert_true '$pasStripIs'
-	assert_true	'[[ -z "$pasStripVal" ]]'
-	assert_true '$pasWildcardsIs'
-	assert_true '[[ -z "$pasWildcardsVal" ]]'
-}
-test_config_section_parse_name_strip_null(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-
-	assert_true "config_section_parse '[test.values] --wildcards' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-	assert_true '[[ "$pasSectionNm" == "test.values" ]]'
-	assert_false '$pasStripIs'
-	assert_true	'[[ -z "$pasStripVal" ]]'
-	assert_true '$pasWildcardsIs'
-	assert_true '[[ -z "$pasWildcardsVal" ]]'
-}
-test_config_section_parse_name_both_null(){
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-
-	assert_true "config_section_parse '[test.values]' 'pasSectionNm' 'pasStripIs' 'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'"
-	assert_true '[[ "$pasSectionNm" == "test.values" ]]'
-	assert_false '$pasStripIs'
-	assert_true	'[[ -z "$pasStripVal" ]]'
-	assert_false '$pasWildcardsIs'
-	assert_true '[[ -z "$pasWildcardsVal" ]]'
-}
 test_config_section_settings_extract(){
+	assert_true test_config_section_settings_extract_all_good
+	assert_true test_config_section_settings_extract_name_starts_with_at_least_3_characters
+	assert_true test_config_section_settings_extract_section_qualifier_between_words
+	assert_true test_config_section_settings_extract_name_contains_illegal_characters
+	assert_true test_config_section_settings_extract_name_less_than_3_characters
+	assert_true test_config_section_settings_extract_name_period_start
+	assert_true test_config_section_settings_extract_name_period_end
+	assert_true test_config_section_settings_extract_name_values_empty
 	assert_true test_config_section_settings_extract_empty_section
-	assert_true test_config_section_settings_extract_strip_3
-	assert_true test_config_section_settings_extract_strip_not_number
-	assert_true test_config_section_settings_extract_wildcards	
-	assert_true test_config_section_settings_extract_wildcards_strip
+	assert_true test_config_section_settings_extract_strip
 	assert_true test_config_section_settings_extract_prior_def
 	assert_true test_config_section_settings_extract_prior_def_change
-	assert_true test_config_section_settings_extract_unknown_opt
+}
+test_config_section_settings_extract_all_good(){
+	local -A pasSectionDefs
+	local pasTarOpts
+	assert_true	"config_section_settings_extract '[test] --strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "${pasSectionDefs[test]}" == "$pasTarOpts" ]'
+	assert_true '[ "$pasTarOpts" = "--strip-component=2 --wildcards */component" ]'
+}
+test_config_section_settings_extract_name_starts_with_at_least_3_characters(){
+	local -A pasSectionDefs
+	local pasTarOpts
+	assert_true	"config_section_settings_extract '[tes] --strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "${pasSectionDefs[tes]}" == "$pasTarOpts" ]'
+	assert_true '[ "$pasTarOpts" = "--strip-component=2 --wildcards */component" ]'
+}
+test_config_section_settings_extract_section_qualifier_between_words(){
+	local -A pasSectionDefs
+	local pasTarOpts
+	assert_true	"config_section_settings_extract '[tes.it]--strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "${pasSectionDefs[tes.it]}" == "$pasTarOpts" ]'
+	assert_true '[ "$pasTarOpts" = "--strip-component=2 --wildcards */component" ]'
+}
+test_config_section_settings_extract_name_contains_illegal_characters(){
+	local -A pasSectionDefs
+	local pasTarOpts
+	assert_false	"config_section_settings_extract '[tesiti!] --strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 0 ]'
+}
+test_config_section_settings_extract_name_less_than_3_characters(){
+	local -A pasSectionDefs
+	local pasTarOpts
+	assert_false	"config_section_settings_extract '[te] --strip-component 2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+}
+test_config_section_settings_extract_name_period_start(){
+	local -A pasSectionDefs
+	local pasTarOpts
+	assert_false	"config_section_settings_extract '[.te] --strip-component 2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+}
+test_config_section_settings_extract_name_period_end(){
+	local -A pasSectionDefs
+	local pasTarOpts
+	assert_false	"config_section_settings_extract '[test.] --strip-component 2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+}
+test_config_section_settings_extract_name_values_empty(){
+	local -A pasSectionDefs
+	local pasTarOpts
+	assert_true	"config_section_settings_extract '[tes.it]  ' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 0 ]'
+	assert_true '[ -z "$pasTarOpts" ]'
 }
 test_config_section_settings_extract_empty_section(){
 	local -A pasSectionDefs
-	local pasSectionDefs
-	local pasStripVal
-	local pasWildcardsVal
-	assert_true	"config_section_settings_extract '[test.section]' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'"
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 0 ]]'
-	assert_true '[[ -z $pasStripVal ]]'
-	assert_true '[[ -z $pasWildcardsVal ]]'
+	local pasTarOpts
+	assert_true	"config_section_settings_extract '[test.section]' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 0 ]'
+	assert_true '[ -z "$pasTarOpts" ]'
 }
-test_config_section_settings_extract_strip_3(){
+test_config_section_settings_extract_strip(){
 	local -A pasSectionDefs
-	local pasSectionDefs
-	local pasStripVal
-	local pasWildcardsVal
-	assert_true	"config_section_settings_extract '[test.section] --strip-component 3' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'"
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
-	assert_true '[[ 3 -eq $pasStripVal ]]'
-	assert_true '[[ -z $pasWildcardsVal ]]'
-}
-test_config_section_settings_extract_strip_not_number(){
-	local -A pasSectionDefs
-	local pasSectionDefs
-	local pasStripVal
-	local pasWildcardsVal
-
-	local output="$( assert_false "config_section_settings_extract '[test.section] --strip-component A' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'" 2>&1)"
-	assert_true  "echo \"\$output\" | assert_output_true 'echo <RegEx>^error: msg=..invalid tar --strip-component value - should be positive integer.+'"
-}
-test_config_section_settings_extract_wildcards(){
-	declare -A pasSectionDefs
-	local pasSectionDefs
-	local pasStripVal
-	local pasWildcardsVal
-	assert_true	"config_section_settings_extract '[test.section] --wildcards abc' 'pasSectionDefs' 'pasStripValue' 'pasWildcardsVal'"
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
-	assert_true '[[ -z $pasStripVal ]]'
-	assert_true '[[ "abc" == "$pasWildcardsVal" ]]'
-}
-test_config_section_settings_extract_wildcards_strip(){
-	local -A pasSectionDefs
-	local pasSectionDefs
-	local pasStripVal
-	local pasWildcardsVal
-assert_true	"config_section_settings_extract '[test.section] --wildcards ./ --strip-component 5' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'"
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
-	assert_true '[[ $pasStripVal -eq 5 ]]'
-	assert_true '[[ "./" == "$pasWildcardsVal" ]]'
+	local pasTarOpts
+	assert_true	"config_section_settings_extract '[test.section] --strip-component 3' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "${pasSectionDefs[test.section]}" = "$pasTarOpts" ]'
+	assert_true '[ "$pasTarOpts" = "--strip-component 3" ]'
 }
 test_config_section_settings_extract_prior_def(){
 	local -A pasSectionDefs
-	local pasSectionDefs
-	local pasStripVal
-	local pasWildcardsVal
-	assert_true	"config_section_settings_extract '[test.section] --wildcards ./ --strip-component 5' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'"
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
-	assert_true '[[ $pasStripVal -eq 5 ]]'
-	assert_true '[[ "./" == "$pasWildcardsVal" ]]'
-	pasStripVal=''
-	pasWildcardsVal=''
-	assert_true	"config_section_settings_extract '[test.section]' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'"
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
-	assert_true '[[ $pasStripVal -eq 5 ]]'
-	assert_true '[[ "./" == "$pasWildcardsVal" ]]'
+	local pasTarOpts
+	local -r tarOptsExpected='--wildcards ./ --strip-component 5'
+	assert_true "config_section_settings_extract '[test.section] $tarOptsExpected' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "$pasTarOpts" = "$tarOptsExpected" ]'
+	pasTarOpts=''
+	assert_true	"config_section_settings_extract '[test.section]' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "$pasTarOpts" = "$tarOptsExpected" ]'
 }
 test_config_section_settings_extract_prior_def_change(){
 	local -A pasSectionDefs
-	local pasSectionDefs
-	local pasStripVal
-	local pasWildcardsVal
-	assert_true	"config_section_settings_extract '[test.section] --wildcards ./ --strip-component 5' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'"
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
-	assert_true '[[ $pasStripVal -eq 5 ]]'
-	assert_true '[[ "./" == "$pasWildcardsVal" ]]'
+	local pasTarOpts
+	local -r tarOptsExpected='--wildcards ./ --strip-component 5'
+	assert_true "config_section_settings_extract '[test.section] $tarOptsExpected' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "$pasTarOpts" = "$tarOptsExpected" ]'
+	pasTarOpts=''
+	assert_true	"config_section_settings_extract '[test.section]' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "$pasTarOpts" = "$tarOptsExpected" ]'
 	pasStripVal=''
-	pasWildcardsVal=''
-	assert_true	"config_section_settings_extract '[test.section]' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'"
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
-	assert_true '[[ $pasStripVal -eq 5 ]]'
-	assert_true '[[ "./" == "$pasWildcardsVal" ]]'
-	pasStripVal=''
-	pasWildcardsVal=''
-	assert_true	"config_section_settings_extract '[test.section] --strip-component 6' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'"
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
-	assert_true '[[ $pasStripVal -eq 6 ]]'
-	assert_true '[[ -z "$pasWildcardsVal" ]]'
-}
-test_config_section_settings_extract_unknown_opt(){
-	local -A pasSectionDefs
-	local pasSectionDefs
-	local pasStripVal
-	local pasWildcardsVal
-
-	local output="$( assert_false "config_section_settings_extract '[test.section] --strip-component 6 --badopt A' 'pasSectionDefs' 'pasStripVal' 'pasWildcardsVal'" 2>&1)"
-	assert_true  "echo \"\$output\" | assert_output_true 'echo <RegEx>^error: msg=.Unknown section option=.--badopt.+$'"
+	local -r tarOptNewVal='--strip-component 6'
+	assert_true	"config_section_settings_extract '[test.section] $tarOptNewVal' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "$pasTarOpts" = "$tarOptNewVal" ]'
 }
 test_config_install(){
 	local pasRepoVersion
@@ -424,13 +296,13 @@ test_config_install_entire_tarball(){
 	assert_true '[[ -z "$pasTarOpts" ]]'
 }
 test_config_install_with_strip(){
-	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '/home/dev/' '5'"
+	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '/home/dev/' '--strip-component=5'"
 	assert_true '[[ "$pasRepoVersion" == '\''https://github.com/WhisperingChaos/config.sh/tarball/master'\'' ]]'
 	assert_true '[[ "$pasComponentLocalPath" == "/home/dev//component" ]]'
 	assert_true '[[ "$pasTarOpts" == '\''--strip-component=5'\'' ]]'
 }
 test_config_install_with_strip_wildcards(){
-	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '/home/dev/' '5' 'config.include.sh'"
+	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '/home/dev/' '--strip-component=5 --wildcards config.include.sh'"
 	assert_true '[[ "$pasRepoVersion" == '\''https://github.com/WhisperingChaos/config.sh/tarball/master'\'' ]]'
 	assert_true '[[ "$pasComponentLocalPath" == "/home/dev//component" ]]'
 	local opts="--strip-component=5 --wildcards config.include.sh"
@@ -438,10 +310,10 @@ test_config_install_with_strip_wildcards(){
 }
 test_config_section_default_bash_component(){
 	local -A pasSectionDefs
+	local -r expected='--strip-component=1 --wildcards '\''*/component'\'
 	assert_true "config_section_default_bash_component 'pasSectionDefs'" 
-	assert_true '[[ ${#pasSectionDefs[@]} -eq 1 ]]'
-	local expected='local -ri stripDefVal=2;local -r wildcardsDefVal='\'\'\"\'\"\''*/component'\'\"\'\"\'\'';'
-	assert_true '[[ "${pasSectionDefs[whisperingchaos.bash.component]}" == "$expected" ]]'
+	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
+	assert_true '[ "${pasSectionDefs[whisperingchaos.bash.component]}" == "$expected" ]'
 
 }
 test_config_entry_iterate(){
@@ -458,8 +330,8 @@ test_config_entry_iterate(){
 }
 test_config_vendor_file_single_section(){
 cat <<vendor_iterate_test
-$config_VENDOR_FILE_SCOPE_MARK local -r vendorDir='~/'
-1 [section] --strip-component 1 --wildcards '*.include.sh'
+$config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
+1 [section] --strip-component=1 --wildcards '*.include.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
 4 'relComponentPath2' 'repoUrl2' 'repoVer2'
@@ -474,12 +346,12 @@ vendor_iterate_test_out
 }
 test_config_vendor_file_two_sections(){
 cat <<vendor_iterate_test
-$config_VENDOR_FILE_SCOPE_MARK local -r vendorDir='~/'
-1 [section] --strip-component 1 --wildcards '*.include.sh'
+$config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
+1 [section] --strip-component=1 --wildcards '*.include.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
 4 'relComponentPath2' 'repoUrl2' 'repoVer2'
-5 [section2] --strip-component 2 --wildcards "*.sh"
+5 [section2] --strip-component=2 --wildcards "*.sh"
 6 relComponentPath repoUrl repoVer
 7 relComponentPath1 repoUrl1 repoVer1
 8 'relComponentPath2' 'repoUrl2' 'repoVer2'
@@ -497,12 +369,12 @@ vendor_iterate_test_out
 }
 test_config_vendor_file_reference_prior_sections(){
 cat <<vendor_iterate_test
-$config_VENDOR_FILE_SCOPE_MARK local -r vendorDir='~/'
-1 [section] --strip-component 1 --wildcards '*.include.sh'
+$config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
+1 [section] --strip-component=1 --wildcards '*.include.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
 4 'relComponentPath2' 'repoUrl2' 'repoVer2'
-5 [section2] --strip-component 2 --wildcards "*.sh"
+5 [section2] --strip-component=2 --wildcards "*.sh"
 6 relComponentPath repoUrl repoVer
 7 relComponentPath1 repoUrl1 repoVer1
 8 'relComponentPath2' 'repoUrl2' 'repoVer2'
@@ -510,7 +382,7 @@ $config_VENDOR_FILE_SCOPE_MARK local -r vendorDir='~/'
 10 relComponentPath repoUrl repoVer
 11 relComponentPath1 repoUrl1 repoVer1
 12 'relComponentPath2' 'repoUrl2' 'repoVer2'
-13 [section2] --strip-component 2 --wildcards "*.sh"
+13 [section2] --strip-component=2 --wildcards "*.sh"
 14 relComponentPath repoUrl repoVer
 15 relComponentPath1 repoUrl1 repoVer1
 16 'relComponentPath2' 'repoUrl2' 'repoVer2'
@@ -534,7 +406,7 @@ vendor_iterate_test_out
 }	
 test_config_vendor_file_default_section(){
 cat <<vendor_iterate_test
-$config_VENDOR_FILE_SCOPE_MARK local -r vendorDir=/home/dev/
+$config_VENDOR_FILE_SCOPE_MARK local vendorDir=/home/dev/
 1 [whisperingchaos.bash.component]
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
@@ -543,19 +415,10 @@ vendor_iterate_test
 }
 test_config_vendor_file_default_section_out(){
 cat <<vendor_iterate_test
-repoUrl/tarball/repoVer --- /home/dev//relComponentPath --- --strip-component=2 --wildcards '*/component'
-repoUrl1/tarball/repoVer1 --- /home/dev//relComponentPath1 --- --strip-component=2 --wildcards '*/component'
-'repoUrl2'/tarball/'repoVer2' --- /home/dev//'relComponentPath2' --- --strip-component=2 --wildcards '*/component'
+repoUrl/tarball/repoVer --- /home/dev//relComponentPath --- --strip-component=1 --wildcards '*/component'
+repoUrl1/tarball/repoVer1 --- /home/dev//relComponentPath1 --- --strip-component=1 --wildcards '*/component'
+'repoUrl2'/tarball/'repoVer2' --- /home/dev//'relComponentPath2' --- --strip-component=1 --wildcards '*/component'
 vendor_iterate_test
-}
-test_config_section_found(){
-	assert_true test_config_section_found_true
-	assert_true test_config_section_found_true_section_begins_with_less_at_least_3_characters
-	assert_true test_config_section_found_true_section_qualifier_between_words
-	assert_false test_config_section_found_false_section_name_contains_illegal_characters
-	assert_false test_config_section_found_false_section_name_starts_with_period
-	assert_false test_config_section_found_false_section_name_ends_with_period
-	assert_false test_config_section_found_false_section_begins_with_less_than_2_characters
 }
 test_config_msg_error(){
 	assert_true 'test_config_msg_error_generate | assert_output_true test_config_msg_error_expected'
@@ -609,7 +472,6 @@ main(){
 	test_config_vendor_shebang_detected
 	test_config_vendor_read
 	test_config_vendor_whitespace_exclude
-	test_config_section_parse
 	test_config_section_settings_extract
 	test_config_install
 	test_config_section_default_bash_component

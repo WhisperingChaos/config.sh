@@ -1,7 +1,7 @@
 #!/bin/bash
 config_VENDOR_MARK_DETECTOR='^#<vendor\.config:([[:alnum:]]+[.-][[:alnum:]]+)+>$'
 config_VENDOR_LINENO_DETECTOR='^([0-9]+)[\ ]'
-config_VENDOR_SECTION_DETECTOR='^\[([[:alpha:]][[:alnum:]]+([[:alnum:]]+\.[[:alnum:]]+|[[:alnum:]])+)\](.*)$'
+config_VENDOR_SECTION_DETECTOR='^\[([[:alpha:]][[:alnum:]]+([[:alnum:]]+\.[[:alnum:]]+|[[:alnum:]])+)\][[:space:]]*(.*)$'
 config_VENDOR_FILE_SCOPE_MARK='||||FILE_SCOPE||||'
 
 config_vendor_tree_walk(){
@@ -104,10 +104,8 @@ config_entry_iterate(){
 	config_section_default_bash_component 'pasSectionDefs'
 
 	local -r markLen=${#config_VENDOR_FILE_SCOPE_MARK}
-	local pasStrip
-	local pasWildcards
-	local stripCurr
-	local wildcardsCurr
+	local pasTarOpts
+	local tarOptsCurr
 	local lineNum
 	local entry
 	while read -r entry; do
@@ -115,7 +113,6 @@ config_entry_iterate(){
 			# extract file scope variables
 			entry=${entry:$markLen}
 			# declare file level variables and extablish their values
-			echo "entry: $entry" >&2
 			eval $entry
 			continue
 		fi
@@ -127,14 +124,13 @@ config_entry_iterate(){
 		lineNum="${BASH_REMATCH[1]}"
 		entry="${BASH_REMATCH[2]}"
 		if [[ "$entry" =~ $config_VENDOR_SECTION_DETECTOR ]]; then
-			if ! config_section_settings_extract "$entry" 'pasSectionDefs' \
-			   	'pasStripVal' 'pasWildcardsVal'; then
+
+			if ! config_section_settings_extract "$entry" 'pasSectionDefs' 'pasTarOpts'; then
 				config_msg_error "'error(s) while processing section definition'" \
 				" vendorDir='$vendorDir' lineNum='$lineNum'"
 				exit 1
 			fi
-			stripCurr="$pasStripVal"
-			wildcardsCurr="$pasWildcardsVal"
+			tarOptsCurr="$pasTarOpts"
 			continue
 		fi
 		set -- $entry
@@ -145,21 +141,20 @@ config_entry_iterate(){
 			continue
 		fi
 		config_install_report "$1" "$2" "$3" "$vendorDir"
-		if ! config_install "$1" "$2" "$3" "$vendorDir" "$stripCurr" "$wildcardsCurr"; then
+		if ! config_install "$1" "$2" "$3" "$vendorDir" "$tarOptsCurr"; then
 			config_msg_error "'component install failed'" \
 			" vendorDir='$vendorDir' lineNum='$lineNum' relPath='$1' repo='$2'" \
-			" version='$3' vendorDir='$vendorDir' strip='$stripCurr' wildcards='$wildcardsCurr'"
+			" version='$3' vendorDir='$vendorDir' tarOpts='$tarOptsCurr"
 		fi
 	done
 }
 config_section_default_bash_component(){
 	local rtnSectionDefs="$1"
 
-	local pasStripVal
-	local pasWildcardsVal
-	local sectionDefault="[whisperingchaos.bash.component] --strip-component 2 --wildcards '*/component'"
+	local pasOptsVal
+	local sectionDefault="[whisperingchaos.bash.component] --strip-component=1 --wildcards '*/component'"
 	if ! config_section_settings_extract "$sectionDefault" "$rtnSectionDefs" \
-	   	'pasStripVal' 'pasWildcardsVal'; then
+	   	'pasOptsVal'; then
 		config_msg_error "Failed to parse default section settings='$sectionDefault'"
 		exit 1
 	fi
@@ -167,139 +162,31 @@ config_section_default_bash_component(){
 config_section_settings_extract(){
 	local -r sectionDefMaybe="$1"
 	local -r rtnSectionDefs="$2"
-	local -r rtnStripVal="$3"
-	local -r rtnWildcardsVal="$4"
+	local -r rtnTarOpts="$3"
 
-	local paspasStripVal
-   	local paspasWildcardsVal
-	if ! config__section_settings_extract "$sectionDefMaybe" "$rtnSectionDefs" \
-	   	'paspasStripVal' 'paspasWildcardsVal'; then
-		return 1
-	fi
-	eval $rtnStripVal\=\"\$paspasStripVal\"
-	eval $rtnWildcardsVal\=\"\$paspasWildcardsVal\"
-}
-config__section_settings_extract(){
-	local -r sectionDefMaybe="$1"
-	local -r rtnSectionDefs="$2"
-	local -r rtnStripVal="$3"
-	local -r rtnWildcardsVal="$4"
+	[[ "$sectionDefMaybe" =~ $config_VENDOR_SECTION_DETECTOR ]] || return
+	local -r sectionNm="${BASH_REMATCH[1]}"
+	local opts=${BASH_REMATCH[3]}
 
-	local pasSectionNm
-	local pasStripIs
-	local pasStripVal
-	local pasWildcardsIs
-	local pasWildcardsVal
-	if ! config_section_parse "$sectionDefMaybe" 'pasSectionNm' 'pasStripIs' \
-	   	'pasStripVal' 'pasWildcardsIs' 'pasWildcardsVal'; then
-		false
-		return
-	fi
-	local sectionDef
-	if  [ "$pasStripIs" = 'true' ]; then
-		if ! [[ "$pasStripVal" =~ ^0$|^[1-9]+[0-9]* ]]; then
-			config_msg_error "'invalid tar --strip-component value" \
-			" - should be positive integer' value='$pasStripVal'"
-			false
-			return
-		fi
-		sectionDef='local -ri stripDefVal='"$pasStripVal"';'
-	fi
-	if [ "$pasWildcardsIs" = 'true' ]; then
-		local wildcardsVal="$pasWildcardsVal"
-		config_single_quote_encapsulate 'wildcardsVal'
-		sectionDef="$sectionDef"'local -r wildcardsDefVal='"$wildcardsVal"';'
-	fi
-	if [ -z "$sectionDef" ]; then
+	if [ -z "$opts" ]; then
 		# nothing defined by section :: check for prior definition
-		eval sectionDef=\"\$\{$rtnSectionDefs\[\$pasSectionNm\]\}\"
+		eval opts=\"\$\{$rtnSectionDefs\[\$sectionNm\]\}\"
 	else
 		# define new or replace existing section
 		# a section without variable values isn't stored
-		eval $rtnSectionDefs\[\$pasSectionNm\]\=\"\$sectionDef\"
+		eval $rtnSectionDefs\[\$sectionNm\]\=\"\$opts\"
 	fi
-	# either no prior definition or a definition that has variables
-	# no prior definition assume no strip or wildcards
-	# locally expose strip and wildcards variables, if they exist
-	eval $sectionDef
-
-	eval $rtnStripVal\=\"\$stripDefVal\"
-	eval $rtnWildcardsVal\=\"\$wildcardsDefVal\"
+	# either no prior definition or a definition that has opts
+	# no prior definition assume no opts
+	eval $rtnTarOpts\=\"\$opts\"
 	true
-}
-config_section_parse(){
-	local -r sectionDef="$1"
-	local -r rtnSectionNm="$2"
-	local -r rntStripIs="$3"
-	local -r rntStripVal="$4"
-	local -r rntWildcardsIs="$5"
-	local -r rntWildcardsVal="$6"
-
-	local sectionNm
-	[[ "$sectionDef" =~ $config_VENDOR_SECTION_DETECTOR ]] || return
-	sectionNm="${BASH_REMATCH[1]}"
-	local -r opts=${BASH_REMATCH[3]}
-	local stripIs='false'
-	local stripVal
-	local wildcardsIs='false'
-	local wildcardsVal
-	local shiftCnt
-	local optVal
-	set -- $opts
-	while [[ $# -gt 0 ]]; do
-		shiftCnt=1
-		optVal="$2"
-		if [ ${#optVal} -gt 2 ] && [ "${2:0:2}" = '--' ]; then
-			# only options start with --
-			optVal=""
-		elif [[ $# -gt 1 ]]; then
-			# prevent wrap around to start
-			shiftCnt=2
-		fi	   
-		case "$1" in
-			--strip-component)
-			stripIs='true'
-			stripVal="$optVal"
-			;;
-			--wildcards)
-			wildcardsIs='true'
-			wildcardsVal="$optVal"
-			;;
-			*)
-			config_msg_error "Unknown section option='$1'"
-			false
-	   		return	   
-		esac
-		shift $shiftCnt 
-	done
-
-	eval $rtnSectionNm=\"\$sectionNm\"
-	eval $rntStripIs=\"\$stripIs\"
-	eval $rntStripVal=\"\$stripVal\"
-	eval $rntWildcardsIs=\"\$wildcardsIs\"
-	eval $rntWildcardsVal=\"\$wildcardsVal\"
-	true
-}
-config_single_quote_encapsulate(){
-	eval local value=\"\$$1\"
-	value=${value//\'/\'\"\'\"\'}
-	eval $1=\"\'\$value\'\"
 }
 config_install(){
 	local -r relPath="$1"
 	local -r repo="$2"
 	local -r ver="$3"
 	local -r vendorDir="$4"
-	local -r stripVal="$5"
-	local -r wildcardsVal="$6"
-
-	local tarOpts
-	if [ -n "$stripVal" ]; then
-		tarOpts='--strip-component='"$stripVal"
-	fi
-	if [ -n "$wildcardsVal" ]; then
-		tarOpts=$tarOpts' --wildcards '"$wildcardsVal"
-	fi
+	local -r tarOpts="$5"
 
 	local -r repoPath="$vendorDir/$relPath"
 	config_component_download "$repo/tarball/$ver" "$repoPath" "$tarOpts"
@@ -326,7 +213,6 @@ config_component_download(){
 	wget --dns-timeout=5 --connect-timeout=10 --read-timeout=60 -O -  "$repoVerUrl" 2>/dev/null | eval tar \-xz \-C \"\$componentLocalPath\" $tarOpts \2\>\/dev\/null
 	[[ "${PIPESTATUS[0]}" && "${PIPESTATUS[1]}" ]]
 }
-
 config_msg_error() {
 	# due to bootstrap nature of config, better to replicate code than include it
 	# therefore, it doesn't include the 'msg_' package

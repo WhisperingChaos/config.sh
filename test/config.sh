@@ -341,7 +341,7 @@ test_config_vendor_file_single_section_out(){
 cat <<vendor_iterate_test_out
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.include.sh'
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.include.sh'
-'repoUrl2'/tarball/'repoVer2' --- ~//'relComponentPath2' --- --strip-component=1 --wildcards '*.include.sh'
+repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.include.sh'
 vendor_iterate_test_out
 }
 test_config_vendor_file_two_sections(){
@@ -361,10 +361,10 @@ test_config_vendor_file_two_sections_out(){
 cat <<vendor_iterate_test_out
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.include.sh'
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.include.sh'
-'repoUrl2'/tarball/'repoVer2' --- ~//'relComponentPath2' --- --strip-component=1 --wildcards '*.include.sh'
+repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.include.sh'
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=2 --wildcards "*.sh"
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=2 --wildcards "*.sh"
-'repoUrl2'/tarball/'repoVer2' --- ~//'relComponentPath2' --- --strip-component=2 --wildcards "*.sh"
+repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=2 --wildcards "*.sh"
 vendor_iterate_test_out
 }
 test_config_vendor_file_reference_prior_sections(){
@@ -373,11 +373,11 @@ $config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
 1 [section] --strip-component=1 --wildcards '*.include.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
-4 'relComponentPath2' 'repoUrl2' 'repoVer2'
+4 'relCom ponentPath2' 'repoUrl2' 'repoVer2'
 5 [section2] --strip-component=2 --wildcards "*.sh"
 6 relComponentPath repoUrl repoVer
 7 relComponentPath1 repoUrl1 repoVer1
-8 'relComponentPath2' 'repoUrl2' 'repoVer2'
+8 relCom\ ponentPath2 'repoUrl2' 'repoVer2'
 9 [section]
 10 relComponentPath repoUrl repoVer
 11 relComponentPath1 repoUrl1 repoVer1
@@ -385,23 +385,23 @@ $config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
 13 [section2] --strip-component=2 --wildcards "*.sh"
 14 relComponentPath repoUrl repoVer
 15 relComponentPath1 repoUrl1 repoVer1
-16 'relComponentPath2' 'repoUrl2' 'repoVer2'
+16 'relCom\ ponentPath2' 'repoUrl2' 'repoVer2'
 vendor_iterate_test
 }	
 test_config_vendor_file_reference_prior_sections_out(){
 cat <<vendor_iterate_test_out
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.include.sh'
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.include.sh'
-'repoUrl2'/tarball/'repoVer2' --- ~//'relComponentPath2' --- --strip-component=1 --wildcards '*.include.sh'
+repoUrl2/tarball/repoVer2 --- ~//relCom ponentPath2 --- --strip-component=1 --wildcards '*.include.sh'
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=2 --wildcards "*.sh"
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=2 --wildcards "*.sh"
-'repoUrl2'/tarball/'repoVer2' --- ~//'relComponentPath2' --- --strip-component=2 --wildcards "*.sh"
+repoUrl2/tarball/repoVer2 --- ~//relCom ponentPath2 --- --strip-component=2 --wildcards "*.sh"
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.include.sh'
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.include.sh'
-'repoUrl2'/tarball/'repoVer2' --- ~//'relComponentPath2' --- --strip-component=1 --wildcards '*.include.sh'
+repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.include.sh'
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=2 --wildcards "*.sh"
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=2 --wildcards "*.sh"
-'repoUrl2'/tarball/'repoVer2' --- ~//'relComponentPath2' --- --strip-component=2 --wildcards "*.sh"
+repoUrl2/tarball/repoVer2 --- ~//relCom\ ponentPath2 --- --strip-component=2 --wildcards "*.sh"
 vendor_iterate_test_out
 }	
 test_config_vendor_file_default_section(){
@@ -417,7 +417,7 @@ test_config_vendor_file_default_section_out(){
 cat <<vendor_iterate_test
 repoUrl/tarball/repoVer --- /home/dev//relComponentPath --- --strip-component=1 --wildcards '*/component'
 repoUrl1/tarball/repoVer1 --- /home/dev//relComponentPath1 --- --strip-component=1 --wildcards '*/component'
-'repoUrl2'/tarball/'repoVer2' --- /home/dev//'relComponentPath2' --- --strip-component=1 --wildcards '*/component'
+repoUrl2/tarball/repoVer2 --- /home/dev//relComponentPath2 --- --strip-component=1 --wildcards '*/component'
 vendor_iterate_test
 }
 test_config_msg_error(){

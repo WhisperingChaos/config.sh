@@ -133,7 +133,17 @@ config_entry_iterate(){
 			tarOptsCurr="$pasTarOpts"
 			continue
 		fi
-		set -- $entry
+		# when set is given a string, it simply uses whitespace to delimit arguments
+		# therefore a string like "'ab   c' d e" winds up as
+	   	# $1="'ab", $2="c'" $3="d" $4="e" notice set doesn't understanded single/double
+		# quoted strings.  However, by evaluating the contents of the string, the word
+		# splitting done by eval considers quotes as a single word preventing the division
+		# of a quoted string that contains one or more embedded whitespace(s).  Honoring
+	   	# the behavior of quotes and the excape character "\" is the
+		# evaluation behavior by those adding config file entries. 
+		# lastly, it does permit the use of environment variables to allowing Just In Time
+	    # (dynamic) adaptation.
+		eval set -- $entry
 		if [ "$#" -ne "3" ]; then 
 			config_msg_error "'expecting exactly three columns:" \
 			" Relative Path, Github Repro Download URL, Version'" \
@@ -179,6 +189,7 @@ config_section_settings_extract(){
 	# either no prior definition or a definition that has opts
 	# no prior definition assume no opts
 	eval $rtnTarOpts\=\"\$opts\"
+
 	true
 }
 config_install(){

@@ -6,8 +6,6 @@ config_executeable(){
 	for mod in $( "$myRoot/composer/composer.sh" "$myRoot"); do
 		source "$mod"
 	done
-	# include component to be tested 
-	source "$myRoot/config.include.sh"
 }
 
 test_config_vendor_banner_detected(){

@@ -14,7 +14,7 @@ main(){
 	fi
 	# now fully compose myself because others are using me to
 	# compose themselves
-	for mod in $( "$myRoot/composer.sh/composer.sh" "$myRoot"); do
+	for mod in $( "$myRoot"/composer.sh/composer.sh "$myRoot"); do
 		source "$mod"
 	done
 	# config all components rooted in this tree

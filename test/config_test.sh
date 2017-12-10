@@ -3,7 +3,7 @@ config_executeable(){
 	local -r myRoot="$1"
 	# include components required to create this executable
 	local mod
-	for mod in $( "$myRoot/composer/composer.sh" "$myRoot"); do
+	for mod in $( "$myRoot/includer/includer.sh" "$myRoot"); do
 		source "$mod"
 	done
 }

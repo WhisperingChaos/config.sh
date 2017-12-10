@@ -6,5 +6,6 @@
 # ignore vendored components - ones contributed by other repositories #
 #######################################################################
 test/base
-test/composer
+test/includer
+test/config
 component/composer

@@ -11,7 +11,7 @@ source "$(dirname "${BASH_SOURCE[0]}")"/base/config.include.sh
 main(){
 	# identifies the root directory of the component(s) needing configuration
 	local -r rootDir="$1" 
-	if [ -d "$rootDir" ]; then
+	if ! [ -d "$rootDir" ]; then
 		false
 		return
 	fi

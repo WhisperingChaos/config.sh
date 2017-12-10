@@ -12,6 +12,6 @@ main(){
 	fi
 	wget --dns-timeout=5 --connect-timeout=10 --read-timeout=60 -O -  "$repoVerUrl" \
 	| tar -xz -C $configDir --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component/'
-	$configDir/config.sh 
+	$configDir/config.sh "$projRoot" 
 }
-main "`pwd`"
+main "$( dirname "${BASH_SOURCE[0]}" )"

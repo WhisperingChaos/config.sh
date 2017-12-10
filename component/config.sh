@@ -1,25 +1,31 @@
 #!/bin/bash
-# separate functions so they can be tested but due
-# to bootstrap constraint, include must be in same
-# physical directory as this command (component).
+# due to bootstrap constraint, config can't execute compose
+# on itself yet. therefore, it expects its core functions 
+# are located in the 'base' subdirectory containing config.sh.
+# Note - may implement similar workaround used by composer
+# that refers to override directory that references 
+# base/config.include.sh so its contents can be overwirtten
+# using a simpler solution than the one provided by the composer
 source "$(dirname "${BASH_SOURCE[0]}")"/base/config.include.sh
 
 main(){
-	local -r rootDir="$1"
-
-	if [ -z "$rootDir" ]; then
-		# minimally configure myself
-		config_vendor_tree_walk "$(dirname "${BASH_SOURCE[0]}")"
+	# identifies the root directory of the component(s) needing configuration
+	local -r rootDir="$1" 
+	if [ -d "$rootDir" ]; then
+		false
 		return
 	fi
+	# before building the component(s) configure myself
+	local -r rootDirForConfig="$(dirname "${BASH_SOURCE[0]}")"
+	config_vendor_tree_walk "$rootDirForConfig"
 	# now fully compose myself because others are using me to
 	# compose themselves
-	for mod in $( "$myRoot"/composer/composer.sh "$myRoot"); do
+	for mod in $( "$rootDirForConfig"/composer/composer.sh "$myRoot"); do
 		source "$mod"
 	done
-	# config all components rooted in this tree
+	# config all component(s) specified by any vendor.config file
+	# defined within this tree.
 	config_vendor_tree_walk "$rootDir"
 }
-
 main  "${@}"
 

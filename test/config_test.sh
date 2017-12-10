@@ -308,11 +308,10 @@ test_config_install_with_strip_wildcards(){
 }
 test_config_section_default_bash_component(){
 	local -A pasSectionDefs
-	local -r expected='--strip-component=1 --wildcards '\''*/component'\'
+	local -r expected='--strip-component=2 --wildcards --no-wildcards-match-slash --anchor '\''*/component'\'
 	assert_true "config_section_default_bash_component 'pasSectionDefs'" 
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "${pasSectionDefs[whisperingchaos.bash.component]}" == "$expected" ]'
-
 }
 test_config_entry_iterate(){
 	config_install_report(){
@@ -413,9 +412,9 @@ vendor_iterate_test
 }
 test_config_vendor_file_default_section_out(){
 cat <<vendor_iterate_test
-repoUrl/tarball/repoVer --- /home/dev//relComponentPath --- --strip-component=1 --wildcards '*/component'
-repoUrl1/tarball/repoVer1 --- /home/dev//relComponentPath1 --- --strip-component=1 --wildcards '*/component'
-repoUrl2/tarball/repoVer2 --- /home/dev//relComponentPath2 --- --strip-component=1 --wildcards '*/component'
+repoUrl/tarball/repoVer --- /home/dev//relComponentPath --- --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component'
+repoUrl1/tarball/repoVer1 --- /home/dev//relComponentPath1 --- --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component'
+repoUrl2/tarball/repoVer2 --- /home/dev//relComponentPath2 --- --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component'
 vendor_iterate_test
 }
 test_config_msg_error(){

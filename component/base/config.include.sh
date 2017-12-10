@@ -162,7 +162,7 @@ config_section_default_bash_component(){
 	local rtnSectionDefs="$1"
 
 	local pasOptsVal
-	local sectionDefault="[whisperingchaos.bash.component] --strip-component=1 --wildcards '*/component'"
+	local sectionDefault="[whisperingchaos.bash.component] --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component'"
 	if ! config_section_settings_extract "$sectionDefault" "$rtnSectionDefs" \
 	   	'pasOptsVal'; then
 		config_msg_error "Failed to parse default section settings='$sectionDefault'"

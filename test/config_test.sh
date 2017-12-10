@@ -425,14 +425,12 @@ test_config_msg_error_generate(){
 	config_msg_error "testing error message" 2>&1 
 }
 test_config_msg_error_expected(){
-	echo "${assert_REGEX_COMPARE}error: msg='testing error message' func_name='test_config_msg_error_generate' line_no=[0-9]+ source_file='./config.sh' time=.*"
+	echo "${assert_REGEX_COMPARE}error: msg='testing error message' func_name='test_config_msg_error_generate' line_no=[0-9]+ source_file='./config_test.sh' time=.*"
 }
 test_config_tree_walk(){
 	local myRoot="$1"
 
 	local pasTempFileNm
-	# reset any source changes
-	source "$myRoot/config.include.sh"
 	assert_true  "test_config_vendor_temp_file_create test_config_tree_walk_generate_one_component_vendor 'pasTempFileNm'"
 	assert_true 'config_vendor_tree_walk "$(dirname "$pasTempFileNm")"|assert_output_true test_config_tree_walk_generate_one_component_vendor_output' 
 	test_config_vendor_temp_file_destroy "$pasTempFileNm"
@@ -475,6 +473,10 @@ main(){
 	test_config_section_default_bash_component
 	test_config_entry_iterate
 	test_config_msg_error
+	# reset the source to eliminate any overriding function definitions
+	# one could argue that it be done before any test but it's
+	# expensive
+	config_executeable "$(dirname "${BASH_SOURCE[0]}")" 
 	test_config_tree_walk "$(dirname "${BASH_SOURCE[0]}")" 
 	assert_raised_check
 }

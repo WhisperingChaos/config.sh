@@ -3,7 +3,7 @@ config_executeable(){
 	local -r myRoot="$1"
 	# include components required to create this executable
 	local mod
-	for mod in $( "$myRoot/includer/includer.sh" "$myRoot"); do
+	for mod in $( "$myRoot/sourcer/sourcer.sh" "$myRoot"); do
 		source "$mod"
 	done
 }
@@ -300,10 +300,10 @@ test_config_install_with_strip(){
 	assert_true '[[ "$pasTarOpts" == '\''--strip-component=5'\'' ]]'
 }
 test_config_install_with_strip_wildcards(){
-	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '/home/dev/' '--strip-component=5 --wildcards config.include.sh'"
+	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '/home/dev/' '--strip-component=5 --wildcards config.source.sh'"
 	assert_true '[[ "$pasRepoVersion" == '\''https://github.com/WhisperingChaos/config.sh/tarball/master'\'' ]]'
 	assert_true '[[ "$pasComponentLocalPath" == "/home/dev//component" ]]'
-	local opts="--strip-component=5 --wildcards config.include.sh"
+	local opts="--strip-component=5 --wildcards config.source.sh"
 	assert_true '[[ "$pasTarOpts" == "$opts" ]]'
 }
 test_config_section_default_bash_component(){
@@ -328,7 +328,7 @@ test_config_entry_iterate(){
 test_config_vendor_file_single_section(){
 cat <<vendor_iterate_test
 $config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
-1 [section] --strip-component=1 --wildcards '*.include.sh'
+1 [section] --strip-component=1 --wildcards '*.source.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
 4 'relComponentPath2' 'repoUrl2' 'repoVer2'
@@ -336,15 +336,15 @@ vendor_iterate_test
 }	
 test_config_vendor_file_single_section_out(){
 cat <<vendor_iterate_test_out
-repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.include.sh'
-repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.include.sh'
-repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.include.sh'
+repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.source.sh'
+repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.source.sh'
+repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.source.sh'
 vendor_iterate_test_out
 }
 test_config_vendor_file_two_sections(){
 cat <<vendor_iterate_test
 $config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
-1 [section] --strip-component=1 --wildcards '*.include.sh'
+1 [section] --strip-component=1 --wildcards '*.source.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
 4 'relComponentPath2' 'repoUrl2' 'repoVer2'
@@ -356,9 +356,9 @@ vendor_iterate_test
 }	
 test_config_vendor_file_two_sections_out(){
 cat <<vendor_iterate_test_out
-repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.include.sh'
-repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.include.sh'
-repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.include.sh'
+repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.source.sh'
+repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.source.sh'
+repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.source.sh'
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=2 --wildcards "*.sh"
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=2 --wildcards "*.sh"
 repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=2 --wildcards "*.sh"
@@ -367,7 +367,7 @@ vendor_iterate_test_out
 test_config_vendor_file_reference_prior_sections(){
 cat <<vendor_iterate_test
 $config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
-1 [section] --strip-component=1 --wildcards '*.include.sh'
+1 [section] --strip-component=1 --wildcards '*.source.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
 4 'relCom ponentPath2' 'repoUrl2' 'repoVer2'
@@ -387,15 +387,15 @@ vendor_iterate_test
 }	
 test_config_vendor_file_reference_prior_sections_out(){
 cat <<vendor_iterate_test_out
-repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.include.sh'
-repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.include.sh'
-repoUrl2/tarball/repoVer2 --- ~//relCom ponentPath2 --- --strip-component=1 --wildcards '*.include.sh'
+repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.source.sh'
+repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.source.sh'
+repoUrl2/tarball/repoVer2 --- ~//relCom ponentPath2 --- --strip-component=1 --wildcards '*.source.sh'
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=2 --wildcards "*.sh"
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=2 --wildcards "*.sh"
 repoUrl2/tarball/repoVer2 --- ~//relCom ponentPath2 --- --strip-component=2 --wildcards "*.sh"
-repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.include.sh'
-repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.include.sh'
-repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.include.sh'
+repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.source.sh'
+repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.source.sh'
+repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.source.sh'
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=2 --wildcards "*.sh"
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=2 --wildcards "*.sh"
 repoUrl2/tarball/repoVer2 --- ~//relCom\ ponentPath2 --- --strip-component=2 --wildcards "*.sh"
@@ -441,11 +441,11 @@ test_config_tree_walk_generate_one_component_vendor(){
 	cat <<'vendorfile'
 #<vendor.config:1.0>
 [whisperingchaos.bash.component]
-assert	https://github.com/WhisperingChaos/assert.include.sh master
+assert	https://github.com/WhisperingChaos/assert.source.sh master
 vendorfile
 }
 test_config_tree_walk_generate_one_component_vendor_output(){
-	echo "${assert_REGEX_COMPARE}^info\: msg\='Downloading \& installing repo\='https\://github\.com/WhisperingChaos/assert\.include\.sh' ver='master' to directory='/tmp/.+assert.*"
+	echo "${assert_REGEX_COMPARE}^info\: msg\='Downloading \& installing repo\='https\://github\.com/WhisperingChaos/assert\.source\.sh' ver='master' to directory='/tmp/.+assert.*"
 }
 test_config_tree_walk_one_bad(){
 ( config_vendor_tree_walk "$(dirname "$1")")

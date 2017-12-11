@@ -225,8 +225,8 @@ config_component_download(){
 	[[ "${PIPESTATUS[0]}" && "${PIPESTATUS[1]}" ]]
 }
 config_msg_error() {
-	# due to bootstrap nature of config, better to replicate code than include it
-	# therefore, it doesn't include the 'msg_' package
+	# due to bootstrap nature of config, better to replicate code than source it
+	# therefore, it doesn't source the 'msg_' package
 	local msg
 	while [[ $# -gt 0 ]]; do
 		msg=$msg$1

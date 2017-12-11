@@ -1,1 +1,1 @@
-../../component/base/config.include.sh
+../../component/base/config.source.sh

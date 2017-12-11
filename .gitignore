@@ -8,4 +8,5 @@
 test/base
 test/includer
 test/config
+sourcer
 component/composer

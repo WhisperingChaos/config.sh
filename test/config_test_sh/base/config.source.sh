@@ -1,1 +1,0 @@
-../../component/base/config.source.sh

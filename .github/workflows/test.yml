@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Configure Test
-      run: cd test; config.sh
+      run: cd test; ./config.sh
     - name: Run Test
       run: cd test; ./config_test.sh
       
@@ -21,6 +21,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Configure Test
-      run: cd test; config.sh
+      run: cd test; ./config.sh
     - name: Run Test
       run: cd test; ./config_test.sh

@@ -1,7 +1,7 @@
 #!/bin/bash
 sourcer__build_CONFLICT_EXCEPTION='enable'
 sourcer__build_funcvar_exception_categorize(){ return 1; }
-source ~/config.sh/test/sourcer/base/sourcer.build.source.sh ./sourcer ./
+source ./config_test_sh/sourcer/base/sourcer.build.source.sh ./config_test_sh/sourcer ./config_test_sh
 
 
 test_config__vendor_banner_detected(){
@@ -446,13 +446,13 @@ test_config_tree_walk(){
 	test_config__vendor_temp_file_destroy "$pasTempFileNm"
 
 	assert_output_true \
-		---	assert_true 'config_vendor_tree_walk ./file/vendor_tree_walk/max_directories'
+		---	assert_true 'config_vendor_tree_walk ./config_test_sh/file/vendor_tree_walk/max_directories'
 	assert_output_true test_config__vendor_file_search_too_deep_error_out \
-		--- assert_false 'config_vendor_tree_walk ./file/vendor_tree_walk/too_deep'
+		--- assert_false 'config_vendor_tree_walk ./config_test_sh/file/vendor_tree_walk/too_deep'
 	assert_output_true test_config__vendor_file_search_too_broad_out \
-		--- assert_false 'config_vendor_tree_walk ./file/vendor_tree_walk/too_broad'
+		--- assert_false 'config_vendor_tree_walk ./config_test_sh/file/vendor_tree_walk/too_broad'
 	assert_output_true test_config_tree_walk_generate_bad_component_vendor_output \
-		--- assert_false 'config_vendor_tree_walk ./file/vendor_tree_walk/bad_component_repository' 
+		--- assert_false 'config_vendor_tree_walk ./config_test_sh/file/vendor_tree_walk/bad_component_repository' 
 }
 test_config_tree_walk_generate_one_component_vendor(){
 	cat <<'vendorfile'
@@ -476,20 +476,20 @@ vendorfile
 }
 
 test_config_tree_walk_generate_bad_component_vendor_output(){
-	echo "${assert_REGEX_COMPARE}^info: msg='Downloading \& installing repo='https://github.com/WhisperingChaos/doesnotexist' ver='master' to directory='./file/vendor_tree_walk/bad_component_repository/assert''"
-	echo "${assert_REGEX_COMPARE}^error: msg\=''component install failed' vendorDir\='\./file/vendor_tree_walk/bad_component_repository' lineNum='[0-9]+' relPath='assert' repo='https://github\.com/WhisperingChaos/doesnotexist' version='master' vendorDir='\./file/vendor_tree_walk/bad_component_repository' tarOpts\='\-\-strip-component=2 \-\-wildcards \-\-no\-wildcards\-match\-slash \-\-anchor '\*/component'' func_name='config_entry_iterate' line_no=[0-9]+ source_file='\.//base/config\.source\.sh' time\='[^']+'"
+	echo "${assert_REGEX_COMPARE}^info: msg='Downloading \& installing repo='https://github.com/WhisperingChaos/doesnotexist' ver='master' to directory='\./config_test_sh/file/vendor_tree_walk/bad_component_repository/assert''"
+	echo "${assert_REGEX_COMPARE}^error: msg\=''component install failed' vendorDir\='\./config_test_sh/file/vendor_tree_walk/bad_component_repository' lineNum='[0-9]+' relPath='assert' repo='https://github\.com/WhisperingChaos/doesnotexist' version='master' vendorDir='\./config_test_sh/file/vendor_tree_walk/bad_component_repository' tarOpts\='\-\-strip-component=2 \-\-wildcards \-\-no\-wildcards\-match\-slash \-\-anchor '\*/component'' func_name='config_entry_iterate' line_no=[0-9]+ source_file='\./config_test_sh/base/config\.source\.sh' time\='[^']+'"
 }
 
 
 test_config__vendor_file_search_too_deep_error_out(){
 	cat <<TEST_CONFIG__VENDOR_FILE_SEARCH_TOO_DEEP_ERROR
-${assert_REGEX_COMPARE}error: msg='Attempting to dive into directory: '\./file/vendor_tree_walk/too_deep/level_2//level_3//Level_4//Level_5//Level_6/' but its depth exceeds maximum level of: '[0-9]+'\.  If max level too small then increase value of variable config__VENDOR_VISIT_LEVEL_MAX using override mechanism\.' func_name='config__vendor_file_search_too_deep_error' line_no=[0-9]+ source_file='\.//base/config\.source\.sh' time='.+'$
+${assert_REGEX_COMPARE}error: msg='Attempting to dive into directory: '\./config_test_sh/file/vendor_tree_walk/too_deep/level_2//level_3//Level_4//Level_5//Level_6/' but its depth exceeds maximum level of: '[0-9]+'\.  If max level too small then increase value of variable config__VENDOR_VISIT_LEVEL_MAX using override mechanism\.' func_name='config__vendor_file_search_too_deep_error' line_no=[0-9]+ source_file='\./config_test_sh/base/config\.source\.sh' time='.+'$
 TEST_CONFIG__VENDOR_FILE_SEARCH_TOO_DEEP_ERROR
 }
 
 test_config__vendor_file_search_too_broad_out(){
 	cat <<TEST_CONFIG__VENDOR_FILE_SEARCH_TOO_BROAD_ERROR
-${assert_REGEX_COMPARE}^error: msg='Maximum component count: '20' exceeded for a given level while starting to process directory: '\./file/vendor_tree_walk/too_broad/component_21/'\.  This and all component directories that sort after it were not processed\.  If you want to exceed this limit increase the value of variable: 'config__VENDOR_COMPONENTS_PER_LEVEL_MAX'\.' func_name='config__vendor_too_many_components_error' line_no=[0-9]+ source_file='\.//base/config.source.sh' time='[^']+'
+${assert_REGEX_COMPARE}^error: msg='Maximum component count: '20' exceeded for a given level while starting to process directory: '\./config_test_sh/file/vendor_tree_walk/too_broad/component_21/'\.  This and all component directories that sort after it were not processed\.  If you want to exceed this limit increase the value of variable: 'config__VENDOR_COMPONENTS_PER_LEVEL_MAX'\.' func_name='config__vendor_too_many_components_error' line_no=[0-9]+ source_file='\./config_test_sh/base/config.source.sh' time='[^']+'
 TEST_CONFIG__VENDOR_FILE_SEARCH_TOO_BROAD_ERROR
 }
 
@@ -509,17 +509,17 @@ test_execute_clean(){
 test_config_sh(){
 
 	assert_output_true config_vendor_format_help \
-		--- assert_true './config.sh --hformat'
+		--- assert_true './config_test_sh/config.sh --hformat'
 	assert_output_true config_vendor_format_example \
-		--- assert_true './config.sh --sample'
+		--- assert_true './config_test_sh/config.sh --sample'
 	assert_output_true test_config_sh_file_search_too_deep_error_out \
-		--- assert_false './config.sh ./file/vendor_tree_walk/too_deep'
+		--- assert_false './config_test_sh/config.sh ./config_test_sh/file/vendor_tree_walk/too_deep'
 }
 
 
 test_config_sh_file_search_too_deep_error_out(){
 	cat << TEST_CONFIG_SH_FILE_SEARCH_TOO_DEEP_ERROR_OUT
-${assert_REGEX_COMPARE}^error: msg='Attempting to dive into directory: '\./file/vendor_tree_walk/too_deep/level_2//level_3//Level_4//Level_5//Level_6/' but its depth exceeds maximum level of: '[0-9]+'\.  If max level too small then increase value of variable config__VENDOR_VISIT_LEVEL_MAX using override mechanism\.' func_name='config__vendor_file_search_too_deep_error' line_no=[0-9]+ source_file='[^']+config.sh/component/base/config\.source\.sh' time='[^']+'
+${assert_REGEX_COMPARE}^error: msg='Attempting to dive into directory: '\./config_test_sh/file/vendor_tree_walk/too_deep/level_2//level_3//Level_4//Level_5//Level_6/' but its depth exceeds maximum level of: '[0-9]+'\.  If max level too small then increase value of variable config__VENDOR_VISIT_LEVEL_MAX using override mechanism\.' func_name='config__vendor_file_search_too_deep_error' line_no=[0-9]+ source_file='[^']+config.sh/component/config_sh/base/config.source.sh' time='[^']+'
 TEST_CONFIG_SH_FILE_SEARCH_TOO_DEEP_ERROR_OUT
 }
 

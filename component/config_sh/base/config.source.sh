@@ -113,7 +113,7 @@ config_vendor_format_help(){
 #   	and are appended to the tar command in exactly the same order as
 #   	they appear.
 #
-#   	ex: "[whisperingchaos.bash.component] --strip-component=1 --wildcards 'component/*'"
+#   	ex: "[whisperingchaos.bash.component]  --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component'"
 #
 #   	Elimate the repository root directory and copy all files from the
 #   	'component' directory - ignoring any other files in the repository.

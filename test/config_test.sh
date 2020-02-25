@@ -1,94 +1,90 @@
 #!/bin/bash
-config_executeable(){
-	local -r myRoot="$1"
-	# include components required to create this executable
-	local mod
-	for mod in $( "$myRoot/sourcer/sourcer.sh" "$myRoot"); do
-		source "$mod"
-	done
+sourcer__build_CONFLICT_EXCEPTION='enable'
+sourcer__build_funcvar_exception_categorize(){ return 1; }
+source ~/config.sh/test/sourcer/base/sourcer.build.source.sh ./sourcer ./
+
+
+test_config__vendor_banner_detected(){
+	assert_true "echo '#<vendor.config:1.0>' | config__vendor_banner_detected"
+	assert_true 'test_config__vendor_banner_white_space | config__vendor_banner_detected'
+	assert_false "echo '#<vendorxconfig:1.0>' | config__vendor_banner_detected"
+
+	assert_false 'test_config__vendor_banner_not_first | config__vendor_banner_detected'
+	assert_false "echo '#<vendor.config:.0>' | config__vendor_banner_detected"
+	assert_false "echo 'bad#<vendor.config:.0>' | config__vendor_banner_detected"
 }
 
-test_config_vendor_banner_detected(){
-	assert_true "echo '#<vendor.config:1.0>' | config_vendor_banner_detected"
-	assert_true 'test_config_vendor_banner_white_space | config_vendor_banner_detected'
-	assert_false "echo '#<vendorxconfig:1.0>' | config_vendor_banner_detected"
-
-	assert_false 'test_config_vendor_banner_not_first | config_vendor_banner_detected'
-	assert_false "echo '#<vendor.config:.0>' | config_vendor_banner_detected"
-	assert_false "echo 'bad#<vendor.config:.0>' | config_vendor_banner_detected"
-}
-
-test_config_vendor_banner_white_space(){
+test_config__vendor_banner_white_space(){
 	echo ' 	#<vendor.config:1.0>' 
 }
 
-test_config_vendor_banner_not_first(){
+test_config__vendor_banner_not_first(){
 	echo '# hi there!'
 	echo '#<vendor.config:1.0>' 
 }
-test_config_vendor_shebang_detected(){
-	assert_false 'test_config_vendor_bash_shebang | config_vendor_shebang_detected'
-	assert_false 'test_config_vendor_bash_shebang_plus | config_vendor_shebang_detected'
-	assert_true 'test_config_vendor_bash_shebang_vendor | config_vendor_shebang_detected'
-	assert_false 'test_config_vendor_bash_vendor_shebang | config_vendor_shebang_detected'
-	assert_false 'test_config_vendor_bad_shebang_vendor | config_vendor_shebang_detected'
+test_config__vendor_shebang_detected(){
+	assert_false 'test_config__vendor_bash_shebang | config__vendor_shebang_detected'
+	assert_false 'test_config__vendor_bash_shebang_plus | config__vendor_shebang_detected'
+	assert_true 'test_config__vendor_bash_shebang_vendor | config__vendor_shebang_detected'
+	assert_false 'test_config__vendor_bash_vendor_shebang | config__vendor_shebang_detected'
+	assert_false 'test_config__vendor_bad_shebang_vendor | config__vendor_shebang_detected'
 }
-test_config_vendor_bash_shebang(){
+test_config__vendor_bash_shebang(){
 	echo "#!/bin/bash"
 }
-test_config_vendor_bash_shebang_plus(){
+test_config__vendor_bash_shebang_plus(){
 	echo "#!/bin/bash"
 	echo "# another line"
 }
-test_config_vendor_shell_shebang_vendor(){
+test_config__vendor_shell_shebang_vendor(){
 	echo "#!/bin/sh -x"
 	echo '#<vendor.config:1.0>' 
 }
-test_config_vendor_bash_shebang_vendor(){
+test_config__vendor_bash_shebang_vendor(){
 	echo "#!/bin/bash"
 	echo '#<vendor.config:1.0>' 
 }
-test_config_vendor_bash_vendor_shebang(){
+test_config__vendor_bash_vendor_shebang(){
 	echo '#<vendor.config:1.0>' 
 	echo "#!/bin/bash"
 }
-test_config_vendor_bad_shebang_vendor(){
+test_config__vendor_bad_shebang_vendor(){
 echo "#!"
 echo '#<vendor.config:1.0>' 
 }
-test_config_vendor_read(){
-	assert_true "test_config_vendor_temp_file_reading test_config_vendor_file_empty test_config_vendor_file_empty_output"
-	assert_true "test_config_vendor_temp_file_reading test_config_vendor_file_one_entry test_config_vendor_file_one_entry_output"
-	assert_true "test_config_vendor_temp_file_reading test_config_vendor_file_two_entry test_config_vendor_file_two_entry_output"
-	assert_true "test_config_vendor_temp_file_reading test_config_vendor_read_bash test_config_vendor_read_bash_output 'subshell'"
+test_config__vendor_read(){
+	assert_true "test_config__vendor_temp_file_reading test_config__vendor_file_empty test_config__vendor_file_empty_output"
+	assert_true "test_config__vendor_temp_file_reading test_config__vendor_file_one_entry test_config__vendor_file_one_entry_output"
+	assert_true "test_config__vendor_temp_file_reading test_config__vendor_file_two_entry test_config__vendor_file_two_entry_output"
+	assert_true "test_config__vendor_temp_file_reading test_config__vendor_read_bash test_config__vendor_read_bash_output 'subshell'"
  }
-test_config_vendor_temp_file_reading(){
+test_config__vendor_temp_file_reading(){
 	local -r vendorGen="$1"
 	local -r vendorGenOut="$2"
 	local -r readerOpt="${3:-cat}"
 
 	local pasTempFileNm
-	test_config_vendor_temp_file_create "$vendorGen" 'pasTempFileNm'
+	test_config__vendor_temp_file_create "$vendorGen" 'pasTempFileNm'
 	if [ "$readerOpt" == 'subshell' ]; then 
 		assert_true 'chmod +x "$pasTempFileNm"'
 	fi
 	test_vendorGenOut_wrapper(){
 		$vendorGenOut "$pasTempFileNm"
 	}
-	echo "$readerOpt $pasTempFileNm" | config_vendor_read | assert_output_true test_vendorGenOut_wrapper
+	echo "$readerOpt $pasTempFileNm" | config__vendor_read | assert_output_true test_vendorGenOut_wrapper
 
 	local -i returnCd=$?
-	test_config_vendor_temp_file_destroy "$pasTempFileNm"
+	test_config__vendor_temp_file_destroy "$pasTempFileNm"
 	return $returnCd
 }
-test_config_vendor_temp_file_create(){
+test_config__vendor_temp_file_create(){
 	local -r vendorGen="$1"
 	local -r rtnTempFileNm="$2"
 	local -r tmpVendor=$(mktemp --tmpdir -d test_config_vendor.XXXXXXXXXX)'/vendor.config'
 	assert_true "'$vendorGen' > '$tmpVendor'"
 	eval $rtnTempFileNm=\"\$tmpVendor\"
 }
-test_config_vendor_temp_file_destroy(){
+test_config__vendor_temp_file_destroy(){
 	local tmpDirName="$(dirname "$1")"
 	local -r tmpDirPrefix='/tmp/'
 	assert_halt
@@ -96,34 +92,34 @@ test_config_vendor_temp_file_destroy(){
 	assert_continue
 	rm -rf "$tmpDirName"
 }
-test_config_vendor_file_empty(){
+test_config__vendor_file_empty(){
 	return
 }
-test_config_vendor_file_empty_output(){
-	test_config_vendor_scope_mark_gen "$1"
+test_config__vendor_file_empty_output(){
+	test_config__vendor_scope_mark_gen "$1"
 	return
 }
-test_config_vendor_file_one_entry(){
+test_config__vendor_file_one_entry(){
 	echo "column1 column2 colum3"
 }
-test_config_vendor_file_one_entry_output(){
-	test_config_vendor_scope_mark_gen "$1"
-	test_config_vendor_file_one_entry
+test_config__vendor_file_one_entry_output(){
+	test_config__vendor_scope_mark_gen "$1"
+	test_config__vendor_file_one_entry
 }
-test_config_vendor_file_two_entry(){
-	test_config_vendor_file_one_entry
-	test_config_vendor_file_one_entry
+test_config__vendor_file_two_entry(){
+	test_config__vendor_file_one_entry
+	test_config__vendor_file_one_entry
 }
-test_config_vendor_file_two_entry_output(){
-	test_config_vendor_scope_mark_gen "$1"
-	test_config_vendor_file_one_entry
-	test_config_vendor_file_one_entry
+test_config__vendor_file_two_entry_output(){
+	test_config__vendor_scope_mark_gen "$1"
+	test_config__vendor_file_one_entry
+	test_config__vendor_file_one_entry
 }
-test_config_vendor_scope_mark_gen(){
+test_config__vendor_scope_mark_gen(){
 	local vendorFileNm="$1"
-	echo "$config_VENDOR_FILE_SCOPE_MARK"'local vendorDir='"'$(dirname $vendorFileNm)'"';'
+	echo "$config__VENDOR_FILE_SCOPE_MARK"'local vendorDir='"'$(dirname $vendorFileNm)'"';'
 }
-test_config_vendor_read_bash(){
+test_config__vendor_read_bash(){
 	cat <<'bashFileDefinition'
 #!/bin/bash
 test_config_file_bash_main(){
@@ -133,34 +129,34 @@ test_config_file_bash_main(){
 test_config_file_bash_main
 bashFileDefinition
 }
-test_config_vendor_read_bash_output(){
-	test_config_vendor_scope_mark_gen "$1"
+test_config__vendor_read_bash_output(){
+	test_config__vendor_scope_mark_gen "$1"
 	echo 'hellWorld column2 colum3'
 }
-test_config_vendor_whitespace_exclude(){
-	assert_true 'test_config_vendor_file_entries_single_line_comments | config_vendor_whitespace_exclude | assert_output_true "exit 0"'
+test_config__vendor_whitespace_exclude(){
+	assert_true 'test_config__vendor_file_entries_single_line_comments | config__vendor_whitespace_exclude | assert_output_true "exit 0"'
 	#set -x
-	assert_true 'test_config_vendor_scope_mark_allow | config_vendor_whitespace_exclude | assert_output_true test_config_vendor_scope_mark_allow_output'
-	assert_true 'test_config_vendor_file_entries_single_line | config_vendor_whitespace_exclude | assert_output_true test_config_vendor_file_single_ws_output'
+	assert_true 'test_config__vendor_scope_mark_allow | config__vendor_whitespace_exclude | assert_output_true test_config__vendor_scope_mark_allow_output'
+	assert_true 'test_config__vendor_file_entries_single_line | config__vendor_whitespace_exclude | assert_output_true test_config__vendor_file_single_ws_output'
 }
-test_config_vendor_file_entries_single_line_comments(){
+test_config__vendor_file_entries_single_line_comments(){
 	echo '#<vendor.config:1.0>'
 	echo '# my comment'
 	echo '# another comment'
 	echo '         '
 	echo
 }
-test_config_vendor_scope_mark_allow(){
-	test_config_vendor_scope_mark_gen 'testdir/testfile'
+test_config__vendor_scope_mark_allow(){
+	test_config__vendor_scope_mark_gen 'testdir/testfile'
 }
-test_config_vendor_scope_mark_allow_output(){
-	test_config_vendor_scope_mark_gen 'testdir/testfile'
+test_config__vendor_scope_mark_allow_output(){
+	test_config__vendor_scope_mark_gen 'testdir/testfile'
 }
-test_config_vendor_file_entries_single_line(){
+test_config__vendor_file_entries_single_line(){
 	echo 'column1 column2 colum3'
 }
-test_config_vendor_file_single_ws_output(){
-	echo "1 $( test_config_vendor_file_entries_single_line )" 
+test_config__vendor_file_single_ws_output(){
+	echo "1 $( test_config__vendor_file_entries_single_line )" 
 }
 test_config_section_settings_extract(){
 	assert_true test_config_section_settings_extract_all_good
@@ -320,30 +316,30 @@ test_config_entry_iterate(){
 	config_component_download(){
 		echo "$1" --- "$2" --- "$3"
 	}
-	assert_true 'test_config_vendor_file_single_section | config_entry_iterate | assert_output_true test_config_vendor_file_single_section_out'  
-	assert_true 'test_config_vendor_file_two_sections | config_entry_iterate | assert_output_true test_config_vendor_file_two_sections_out'
-	assert_true 'test_config_vendor_file_reference_prior_sections | config_entry_iterate | assert_output_true test_config_vendor_file_reference_prior_sections_out'
-	assert_true 'test_config_vendor_file_default_section | config_entry_iterate | assert_output_true test_config_vendor_file_default_section_out'
+	assert_true 'test_config__vendor_file_single_section | config_entry_iterate | assert_output_true test_config__vendor_file_single_section_out'  
+	assert_true 'test_config__vendor_file_two_sections | config_entry_iterate | assert_output_true test_config__vendor_file_two_sections_out'
+	assert_true 'test_config__vendor_file_reference_prior_sections | config_entry_iterate | assert_output_true test_config__vendor_file_reference_prior_sections_out'
+	assert_true 'test_config__vendor_file_default_section | config_entry_iterate | assert_output_true test_config__vendor_file_default_section_out'
 }
-test_config_vendor_file_single_section(){
+test_config__vendor_file_single_section(){
 cat <<vendor_iterate_test
-$config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
+$config__VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
 1 [section] --strip-component=1 --wildcards '*.source.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
 4 'relComponentPath2' 'repoUrl2' 'repoVer2'
 vendor_iterate_test
 }	
-test_config_vendor_file_single_section_out(){
+test_config__vendor_file_single_section_out(){
 cat <<vendor_iterate_test_out
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.source.sh'
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.source.sh'
 repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=1 --wildcards '*.source.sh'
 vendor_iterate_test_out
 }
-test_config_vendor_file_two_sections(){
+test_config__vendor_file_two_sections(){
 cat <<vendor_iterate_test
-$config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
+$config__VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
 1 [section] --strip-component=1 --wildcards '*.source.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
@@ -354,7 +350,7 @@ $config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
 8 'relComponentPath2' 'repoUrl2' 'repoVer2'
 vendor_iterate_test
 }	
-test_config_vendor_file_two_sections_out(){
+test_config__vendor_file_two_sections_out(){
 cat <<vendor_iterate_test_out
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.source.sh'
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.source.sh'
@@ -364,9 +360,9 @@ repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=2 --wil
 repoUrl2/tarball/repoVer2 --- ~//relComponentPath2 --- --strip-component=2 --wildcards "*.sh"
 vendor_iterate_test_out
 }
-test_config_vendor_file_reference_prior_sections(){
+test_config__vendor_file_reference_prior_sections(){
 cat <<vendor_iterate_test
-$config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
+$config__VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
 1 [section] --strip-component=1 --wildcards '*.source.sh'
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
@@ -385,7 +381,7 @@ $config_VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
 16 'relCom\ ponentPath2' 'repoUrl2' 'repoVer2'
 vendor_iterate_test
 }	
-test_config_vendor_file_reference_prior_sections_out(){
+test_config__vendor_file_reference_prior_sections_out(){
 cat <<vendor_iterate_test_out
 repoUrl/tarball/repoVer --- ~//relComponentPath --- --strip-component=1 --wildcards '*.source.sh'
 repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=1 --wildcards '*.source.sh'
@@ -401,22 +397,38 @@ repoUrl1/tarball/repoVer1 --- ~//relComponentPath1 --- --strip-component=2 --wil
 repoUrl2/tarball/repoVer2 --- ~//relCom\ ponentPath2 --- --strip-component=2 --wildcards "*.sh"
 vendor_iterate_test_out
 }	
-test_config_vendor_file_default_section(){
+test_config__vendor_file_default_section(){
 cat <<vendor_iterate_test
-$config_VENDOR_FILE_SCOPE_MARK local vendorDir=/home/dev/
+$config__VENDOR_FILE_SCOPE_MARK local vendorDir=/home/dev/
 1 [whisperingchaos.bash.component]
 2 relComponentPath repoUrl repoVer
 3 relComponentPath1 repoUrl1 repoVer1
 4 'relComponentPath2' 'repoUrl2' 'repoVer2'
 vendor_iterate_test
 }
-test_config_vendor_file_default_section_out(){
+test_config__vendor_file_default_section_out(){
 cat <<vendor_iterate_test
 repoUrl/tarball/repoVer --- /home/dev//relComponentPath --- --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component'
 repoUrl1/tarball/repoVer1 --- /home/dev//relComponentPath1 --- --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component'
 repoUrl2/tarball/repoVer2 --- /home/dev//relComponentPath2 --- --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component'
 vendor_iterate_test
 }
+
+
+test_config__pipe_status_ok(){
+
+	local -ai statusPipe
+	statusPipe=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
+	assert_true 'config__pipe_status_ok "${statusPipe[@]}"'
+	statusPipe=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1)
+	assert_false 'config__pipe_status_ok "${statusPipe[@]}"'
+	statusPipe=(1)
+	assert_false 'config__pipe_status_ok "${statusPipe[@]}"'
+	statusPipe=(0)
+	assert_true 'config__pipe_status_ok "${statusPipe[@]}"'
+}
+
+
 test_config_msg_error(){
 	assert_true 'test_config_msg_error_generate | assert_output_true test_config_msg_error_expected'
 }
@@ -427,15 +439,20 @@ test_config_msg_error_expected(){
 	echo "${assert_REGEX_COMPARE}error: msg='testing error message' func_name='test_config_msg_error_generate' line_no=[0-9]+ source_file='./config_test.sh' time=.*"
 }
 test_config_tree_walk(){
-	local myRoot="$1"
 
 	local pasTempFileNm
-	assert_true  "test_config_vendor_temp_file_create test_config_tree_walk_generate_one_component_vendor 'pasTempFileNm'"
+	assert_true  "test_config__vendor_temp_file_create test_config_tree_walk_generate_one_component_vendor 'pasTempFileNm'"
 	assert_true 'config_vendor_tree_walk "$(dirname "$pasTempFileNm")"|assert_output_true test_config_tree_walk_generate_one_component_vendor_output' 
-	test_config_vendor_temp_file_destroy "$pasTempFileNm"
-	assert_true  "test_config_vendor_temp_file_create test_config_tree_walk_generate_bad_component_vendor 'pasTempFileNm'"
-	assert_true 'test_config_tree_walk_one_bad "$pasTempFileNm" 2>&1 |assert_output_true test_config_tree_walk_generate_bad_component_vendor_output' 
-	test_config_vendor_temp_file_destroy "$pasTempFileNm"
+	test_config__vendor_temp_file_destroy "$pasTempFileNm"
+
+	assert_output_true \
+		---	assert_true 'config_vendor_tree_walk ./file/vendor_tree_walk/max_directories'
+	assert_output_true test_config__vendor_file_search_too_deep_error_out \
+		--- assert_false 'config_vendor_tree_walk ./file/vendor_tree_walk/too_deep'
+	assert_output_true test_config__vendor_file_search_too_broad_out \
+		--- assert_false 'config_vendor_tree_walk ./file/vendor_tree_walk/too_broad'
+	assert_output_true test_config_tree_walk_generate_bad_component_vendor_output \
+		--- assert_false 'config_vendor_tree_walk ./file/vendor_tree_walk/bad_component_repository' 
 }
 test_config_tree_walk_generate_one_component_vendor(){
 	cat <<'vendorfile'
@@ -457,26 +474,76 @@ test_config_tree_walk_generate_bad_component_vendor(){
 assert	https://github.com/WhisperingChaos/doesnotexist master
 vendorfile
 }
+
 test_config_tree_walk_generate_bad_component_vendor_output(){
-	echo "${assert_REGEX_COMPARE}^info\: msg='Downloading \& installing repo\='https\://github.com/WhisperingChaos/doesnotexist' ver\='master' to directory\='/tmp/test_config_vendor.+/assert.*"
+	echo "${assert_REGEX_COMPARE}^info: msg='Downloading \& installing repo='https://github.com/WhisperingChaos/doesnotexist' ver='master' to directory='./file/vendor_tree_walk/bad_component_repository/assert''"
+	echo "${assert_REGEX_COMPARE}^error: msg\=''component install failed' vendorDir\='\./file/vendor_tree_walk/bad_component_repository' lineNum='[0-9]+' relPath='assert' repo='https://github\.com/WhisperingChaos/doesnotexist' version='master' vendorDir='\./file/vendor_tree_walk/bad_component_repository' tarOpts\='\-\-strip-component=2 \-\-wildcards \-\-no\-wildcards\-match\-slash \-\-anchor '\*/component'' func_name='config_entry_iterate' line_no=[0-9]+ source_file='\.//base/config\.source\.sh' time\='[^']+'"
+}
+
+
+test_config__vendor_file_search_too_deep_error_out(){
+	cat <<TEST_CONFIG__VENDOR_FILE_SEARCH_TOO_DEEP_ERROR
+${assert_REGEX_COMPARE}error: msg='Attempting to dive into directory: '\./file/vendor_tree_walk/too_deep/level_2//level_3//Level_4//Level_5//Level_6/' but its depth exceeds maximum level of: '[0-9]+'\.  If max level too small then increase value of variable config__VENDOR_VISIT_LEVEL_MAX using override mechanism\.' func_name='config__vendor_file_search_too_deep_error' line_no=[0-9]+ source_file='\.//base/config\.source\.sh' time='.+'$
+TEST_CONFIG__VENDOR_FILE_SEARCH_TOO_DEEP_ERROR
+}
+
+test_config__vendor_file_search_too_broad_out(){
+	cat <<TEST_CONFIG__VENDOR_FILE_SEARCH_TOO_BROAD_ERROR
+${assert_REGEX_COMPARE}^error: msg='Maximum component count: '20' exceeded for a given level while starting to process directory: '\./file/vendor_tree_walk/too_broad/component_21/'\.  This and all component directories that sort after it were not processed\.  If you want to exceed this limit increase the value of variable: 'config__VENDOR_COMPONENTS_PER_LEVEL_MAX'\.' func_name='config__vendor_too_many_components_error' line_no=[0-9]+ source_file='\.//base/config.source.sh' time='[^']+'
+TEST_CONFIG__VENDOR_FILE_SEARCH_TOO_BROAD_ERROR
+}
+
+
+# Almost "clean" the executing environment by starting
+# a new shell as child process during recursive call.
+# This is different from creating a subshell within
+# an existing shell.  Did not use 'env -i' because
+# it eliminates nearly all environment variables, some
+# of which might be handy in writing a test.
+test_execute_clean(){
+	bash ./config_test.sh --clean "$@"
+	assert_return_code_set
+}
+
+
+test_config_sh(){
+
+	assert_output_true config_vendor_format_help \
+		--- assert_true './config.sh --hformat'
+	assert_output_true config_vendor_format_example \
+		--- assert_true './config.sh --sample'
+	assert_output_true test_config_sh_file_search_too_deep_error_out \
+		--- assert_false './config.sh ./file/vendor_tree_walk/too_deep'
+}
+
+
+test_config_sh_file_search_too_deep_error_out(){
+	cat << TEST_CONFIG_SH_FILE_SEARCH_TOO_DEEP_ERROR_OUT
+${assert_REGEX_COMPARE}^error: msg='Attempting to dive into directory: '\./file/vendor_tree_walk/too_deep/level_2//level_3//Level_4//Level_5//Level_6/' but its depth exceeds maximum level of: '[0-9]+'\.  If max level too small then increase value of variable config__VENDOR_VISIT_LEVEL_MAX using override mechanism\.' func_name='config__vendor_file_search_too_deep_error' line_no=[0-9]+ source_file='[^']+config.sh/component/base/config\.source\.sh' time='[^']+'
+TEST_CONFIG_SH_FILE_SEARCH_TOO_DEEP_ERROR_OUT
 }
 
 main(){
-	config_executeable "$(dirname "${BASH_SOURCE[0]}")" 
-	test_config_vendor_banner_detected
-	test_config_vendor_shebang_detected
-	test_config_vendor_read
-	test_config_vendor_whitespace_exclude
+
+	if [[ "$1" = '--clean' ]]; then
+		$2 "${@:2}"
+		assert_return_code_set
+		return
+	fi
+
+	test_config_msg_error
+	test_config__pipe_status_ok
+	test_config__vendor_banner_detected
+	test_config__vendor_shebang_detected
+	test_config__vendor_read
+	test_config__vendor_whitespace_exclude
 	test_config_section_settings_extract
 	test_config_install
 	test_config_section_default_bash_component
 	test_config_entry_iterate
-	test_config_msg_error
-	# reset the source to eliminate any overriding function definitions
-	# one could argue that it be done before any test but it's
-	# expensive
-	config_executeable "$(dirname "${BASH_SOURCE[0]}")" 
-	test_config_tree_walk "$(dirname "${BASH_SOURCE[0]}")" 
-	assert_raised_check
+	test_execute_clean	test_config_tree_walk
+	test_execute_clean	test_config_sh
+
+	assert_return_code_set
 }
-main
+main "$@"

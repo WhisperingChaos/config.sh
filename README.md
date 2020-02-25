@@ -1,3 +1,5 @@
+![CI](https://github.com/WhisperingChaos/config.sh/workflows/CI/badge.svg)
+
 #<vendor.config:1.0>
 ###############################################################################
 #

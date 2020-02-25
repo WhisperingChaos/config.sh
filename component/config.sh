@@ -71,18 +71,6 @@ CONFIGSH__HELP_DOC
 }
 	
 
-configSh__version(){
-	local opt="$1"
-
-	if ! [[ "$opt" =~ ^(-v|--version)$ ]]; then
-		return 1
-	fi
-
-	configSh__vendor_version
-	return 0
-}
-
-
 configSh__vendor_version(){
 	echo version: v1.0
 }
@@ -93,6 +81,7 @@ configSh__root_dir_exist_error(){
 
 	config_msg_error 'Cannot access directory: "' "$rootBad" '" either it does not exist or privilege violation occurred.'
 }
+
 
 # main function should be last function so any overridding behavior can be
 # applied to the functions defined in this component as the code in main
@@ -115,13 +104,13 @@ main(){
 	# can use a package to load another package (chained packages)
 	# from directory locations outside these directories.
 	local mod
-	for mod in $( configSh__visit_filepath_echo "$execDir/base" ); do
+	for mod in $( configSh__visit_filepath_echo "$execDir/config_sh/base" ); do
 		if ! source $mod; then 
 			return 1
 		fi
 	done
 	if [ -e "$execDir/override" ]; then
-		for mod in $( configSh__visit_filepath_echo "$execDir/override" ); do
+		for mod in $( configSh__visit_filepath_echo "$execDir/config_sh/override" ); do
 			if ! source $mod; then 
 				return 1
 			fi

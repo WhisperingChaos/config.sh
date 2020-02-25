@@ -1,0 +1,26 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test-latest:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Configure Test
+      run: cd test; config.sh
+    - name: Run Test
+      run: cd test; config_test.sh
+      
+  test-16-04:
+
+    runs-on: ubuntu-16.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Configure Test
+      run: cd test; config.sh
+    - name: Run Test
+      run: cd test; config_test.sh

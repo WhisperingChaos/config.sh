@@ -12,7 +12,7 @@ jobs:
     - name: Configure Test
       run: cd test; config.sh
     - name: Run Test
-      run: cd test; config_test.sh
+      run: cd test; ./config_test.sh
       
   test-16-04:
 
@@ -23,4 +23,4 @@ jobs:
     - name: Configure Test
       run: cd test; config.sh
     - name: Run Test
-      run: cd test; config_test.sh
+      run: cd test; ./config_test.sh

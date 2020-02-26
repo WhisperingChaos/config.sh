@@ -65,8 +65,17 @@ ARGUMENT:
 
   <FilePath>  A file path that identifies the root directory to begin
               searching for a 'vendor.config'.  If unspecified, the
-              process begins with the current working directory
-              path (\$PWD):$PWD.
+              process begins in the directory containing the config.sh
+              script.  Promotes installing config.sh to <FilePath>.
+              Moreover, encourages using symbolic links to a single 
+              copy of config.sh in projects containing many
+              configurable components as a means of specifying the
+              <FilePath> without having to provide it as a parameter.
+              For this invocation the <FilePath> would
+              be: '$(dirname "$0")'.
+
+Visit: https://github.com/WhisperingChaos/config.sh#configsh for further
+information and to report bugs.
 CONFIGSH__HELP_DOC
 }
 	
@@ -87,7 +96,7 @@ configSh__root_dir_exist_error(){
 # applied to the functions defined in this component as the code in main
 # reads and incorporates functions from other packages.
 main(){
-	local -r rootDir="${1:-$PWD}"
+	local -r rootDir="${1:-$(dirname "$0")}"
 
 	# identify the actual directory location of this executable's components,
 	# as symbolic links may be used to invoke this script

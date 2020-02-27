@@ -282,6 +282,8 @@ test_config_install()(
 	assert_true test_config_install_entire_tarball
 	assert_true test_config_install_with_strip
 	assert_true test_config_install_with_strip_wildcards
+
+	assert_return_code_set
 )
 
 
@@ -328,6 +330,8 @@ test_config_entry_iterate()(
 	assert_true 'test_config__vendor_file_two_sections | config_entry_iterate | assert_output_true test_config__vendor_file_two_sections_out'
 	assert_true 'test_config__vendor_file_reference_prior_sections | config_entry_iterate | assert_output_true test_config__vendor_file_reference_prior_sections_out'
 	assert_true 'test_config__vendor_file_default_section | config_entry_iterate | assert_output_true test_config__vendor_file_default_section_out'
+
+	assert_return_code_set
 )
 test_config__vendor_file_single_section(){
 cat <<vendor_iterate_test
@@ -460,7 +464,9 @@ test_config_tree_walk(){
 	assert_output_true test_config__vendor_file_search_too_broad_out \
 		--- assert_false 'config_vendor_tree_walk ./config_test_sh/file/vendor_tree_walk/too_broad'
 	assert_output_true test_config_tree_walk_generate_bad_component_vendor_output \
-		--- assert_false 'config_vendor_tree_walk ./config_test_sh/file/vendor_tree_walk/bad_component_repository' 
+		--- assert_false 'config_vendor_tree_walk ./config_test_sh/file/vendor_tree_walk/bad_component_repository'
+
+	assert_return_code_set
 }
 test_config_tree_walk_generate_one_component_vendor(){
 	cat <<'vendorfile'
@@ -510,7 +516,7 @@ TEST_CONFIG__VENDOR_FILE_SEARCH_TOO_BROAD_ERROR
 # of which might be handy in writing a test.
 test_execute_clean(){
 	bash ./config_test.sh --clean "$@"
-	assert_return_code_set
+	assert_return_code_child_failure_relay
 }
 
 
@@ -525,6 +531,7 @@ test_config_sh(){
 	assert_output_true test_config_sh_file_absolute_path_with_hash_out \
 		--- assert_true './config_test_sh/config.sh ./config_test_sh/file/vendor_absolute_path/absolute_1'
 
+	assert_return_code_set
 }
 
 
@@ -536,7 +543,7 @@ TEST_CONFIG_SH_FILE_SEARCH_TOO_DEEP_ERROR_OUT
 
 test_config_sh_file_absolute_path_with_hash_out(){
 	cat << TEST_CONFIG_SH_ABSOLUTE_PATH_WITH_HASH_OUT
-info: msg='Downloading & installing repo='https://github.com/WhisperingChaos/sourcer.sh' ver='master' to directory='/home/servicepc/config.sh/test/config_test_sh/file/vendor_absolute_path/absolute_1/absolute_1' vendor.config='./config_test_sh/file/vendor_absolute_path/absolute_1' lineNum='7''
+${assert_REGEX_COMPARE}^info: msg\='Downloading & installing repo='https://github.com/WhisperingChaos/sourcer\.sh' ver\='master' to directory\='/.+/config.sh/test/config_test_sh/file/vendor_absolute_path/absolute_1/absolute_1' vendor.config\='\./config_test_sh/file/vendor_absolute_path/absolute_1' lineNum='[0-9]+''
 info: msg='Downloading & installing repo='https://github.com/WhisperingChaos/assert.source.sh' ver='9c4806e49bee4166b056aa627d1255549b1a4920' to directory='./config_test_sh/file/vendor_absolute_path/absolute_1/absolute_1' vendor.config='./config_test_sh/file/vendor_absolute_path/absolute_1' lineNum='8''
 info: msg='Downloading & installing repo='https://github.com/WhisperingChaos/assert.source.sh' ver='9c4806e49bee4166b056aa627d1255549b1a4920' to directory='./config_test_sh/file/vendor_absolute_path/absolute_1/.' vendor.config='./config_test_sh/file/vendor_absolute_path/absolute_1' lineNum='9''
 TEST_CONFIG_SH_ABSOLUTE_PATH_WITH_HASH_OUT
@@ -558,9 +565,9 @@ main(){
 	test_config__vendor_read
 	test_config__vendor_whitespace_exclude
 	test_config_section_settings_extract
-	test_config_install
+	assert_return_code_child_failure_relay	test_config_install
 	test_config_section_default_bash_component
-	test_config_entry_iterate
+	assert_return_code_child_failure_relay  test_config_entry_iterate
 	test_execute_clean	test_config_tree_walk
 	test_execute_clean	test_config_sh
 

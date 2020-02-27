@@ -268,7 +268,7 @@ test_config_section_settings_extract_prior_def_change(){
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "$pasTarOpts" = "$tarOptNewVal" ]'
 }
-test_config_install(){
+test_config_install()(
 	local pasRepoVersion
 	local pasComponentLocalPath
 	local pasTarOpts
@@ -282,26 +282,34 @@ test_config_install(){
 	assert_true test_config_install_entire_tarball
 	assert_true test_config_install_with_strip
 	assert_true test_config_install_with_strip_wildcards
-}
+)
+
+
 test_config_install_entire_tarball(){
-	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '/home/dev/'"
+	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master'"
 	assert_true '[[ "$pasRepoVersion" == '\''https://github.com/WhisperingChaos/config.sh/tarball/master'\'' ]]'
-	assert_true '[[ "$pasComponentLocalPath" == "/home/dev//component" ]]'
+	assert_true '[[ "$pasComponentLocalPath" == "component" ]]'
 	assert_true '[[ -z "$pasTarOpts" ]]'
 }
+
+
 test_config_install_with_strip(){
-	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '/home/dev/' '--strip-component=5'"
+	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '--strip-component=5'"
 	assert_true '[[ "$pasRepoVersion" == '\''https://github.com/WhisperingChaos/config.sh/tarball/master'\'' ]]'
-	assert_true '[[ "$pasComponentLocalPath" == "/home/dev//component" ]]'
+	assert_true '[[ "$pasComponentLocalPath" == "component" ]]'
 	assert_true '[[ "$pasTarOpts" == '\''--strip-component=5'\'' ]]'
 }
+
+
 test_config_install_with_strip_wildcards(){
-	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '/home/dev/' '--strip-component=5 --wildcards config.source.sh'"
+	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '--strip-component=5 --wildcards config.source.sh'"
 	assert_true '[[ "$pasRepoVersion" == '\''https://github.com/WhisperingChaos/config.sh/tarball/master'\'' ]]'
-	assert_true '[[ "$pasComponentLocalPath" == "/home/dev//component" ]]'
+	assert_true '[[ "$pasComponentLocalPath" == "component" ]]'
 	local opts="--strip-component=5 --wildcards config.source.sh"
 	assert_true '[[ "$pasTarOpts" == "$opts" ]]'
 }
+
+
 test_config_section_default_bash_component(){
 	local -A pasSectionDefs
 	local -r expected='--strip-component=2 --wildcards --no-wildcards-match-slash --anchor '\''*/component'\'
@@ -309,7 +317,7 @@ test_config_section_default_bash_component(){
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "${pasSectionDefs[whisperingchaos.bash.component]}" == "$expected" ]'
 }
-test_config_entry_iterate(){
+test_config_entry_iterate()(
 	config_install_report(){
 		return
 	}
@@ -320,7 +328,7 @@ test_config_entry_iterate(){
 	assert_true 'test_config__vendor_file_two_sections | config_entry_iterate | assert_output_true test_config__vendor_file_two_sections_out'
 	assert_true 'test_config__vendor_file_reference_prior_sections | config_entry_iterate | assert_output_true test_config__vendor_file_reference_prior_sections_out'
 	assert_true 'test_config__vendor_file_default_section | config_entry_iterate | assert_output_true test_config__vendor_file_default_section_out'
-}
+)
 test_config__vendor_file_single_section(){
 cat <<vendor_iterate_test
 $config__VENDOR_FILE_SCOPE_MARK local vendorDir='~/'
@@ -476,8 +484,8 @@ vendorfile
 }
 
 test_config_tree_walk_generate_bad_component_vendor_output(){
-	echo "${assert_REGEX_COMPARE}^info: msg='Downloading \& installing repo='https://github.com/WhisperingChaos/doesnotexist' ver='master' to directory='\./config_test_sh/file/vendor_tree_walk/bad_component_repository/assert''"
-	echo "${assert_REGEX_COMPARE}^error: msg\=''component install failed' vendorDir\='\./config_test_sh/file/vendor_tree_walk/bad_component_repository' lineNum='[0-9]+' relPath='assert' repo='https://github\.com/WhisperingChaos/doesnotexist' version='master' vendorDir='\./config_test_sh/file/vendor_tree_walk/bad_component_repository' tarOpts\='\-\-strip-component=2 \-\-wildcards \-\-no\-wildcards\-match\-slash \-\-anchor '\*/component'' func_name='config_entry_iterate' line_no=[0-9]+ source_file='\./config_test_sh/base/config\.source\.sh' time\='[^']+'"
+	echo "${assert_REGEX_COMPARE}^info: msg='Downloading \& installing repo='https://github.com/WhisperingChaos/doesnotexist' ver='master' to directory='\./config_test_sh/file/vendor_tree_walk/bad_component_repository/assert' vendor.config='\./config_test_sh/file/vendor_tree_walk/bad_component_repository' lineNum='[0-9]+''"
+	echo "${assert_REGEX_COMPARE}^error: msg\=''component install failed' vendorDir\='\./config_test_sh/file/vendor_tree_walk/bad_component_repository' lineNum='[0-9]+' path='\./config_test_sh/file/vendor_tree_walk/bad_component_repository/assert' repo='https://github\.com/WhisperingChaos/doesnotexist' version='master' tarOpts\='\-\-strip-component=2 \-\-wildcards \-\-no\-wildcards\-match\-slash \-\-anchor '\*/component'' func_name='config_entry_iterate' line_no=[0-9]+ source_file='\./config_test_sh/base/config\.source\.sh' time\='[^']+'"
 }
 
 
@@ -514,6 +522,9 @@ test_config_sh(){
 		--- assert_true './config_test_sh/config.sh --sample'
 	assert_output_true test_config_sh_file_search_too_deep_error_out \
 		--- assert_false './config_test_sh/config.sh ./config_test_sh/file/vendor_tree_walk/too_deep'
+	assert_output_true test_config_sh_file_absolute_path_with_hash_out \
+		--- assert_true './config_test_sh/config.sh ./config_test_sh/file/vendor_absolute_path/absolute_1'
+
 }
 
 
@@ -522,6 +533,15 @@ test_config_sh_file_search_too_deep_error_out(){
 ${assert_REGEX_COMPARE}^error: msg='Attempting to dive into directory: '\./config_test_sh/file/vendor_tree_walk/too_deep/level_2//level_3//Level_4//Level_5//Level_6/' but its depth exceeds maximum level of: '[0-9]+'\.  If max level too small then increase value of variable config__VENDOR_VISIT_LEVEL_MAX using override mechanism\.' func_name='config__vendor_file_search_too_deep_error' line_no=[0-9]+ source_file='[^']+config.sh/component/config_sh/base/config.source.sh' time='[^']+'
 TEST_CONFIG_SH_FILE_SEARCH_TOO_DEEP_ERROR_OUT
 }
+
+test_config_sh_file_absolute_path_with_hash_out(){
+	cat << TEST_CONFIG_SH_ABSOLUTE_PATH_WITH_HASH_OUT
+info: msg='Downloading & installing repo='https://github.com/WhisperingChaos/sourcer.sh' ver='master' to directory='/home/servicepc/config.sh/test/config_test_sh/file/vendor_absolute_path/absolute_1/absolute_1' vendor.config='./config_test_sh/file/vendor_absolute_path/absolute_1' lineNum='7''
+info: msg='Downloading & installing repo='https://github.com/WhisperingChaos/assert.source.sh' ver='9c4806e49bee4166b056aa627d1255549b1a4920' to directory='./config_test_sh/file/vendor_absolute_path/absolute_1/absolute_1' vendor.config='./config_test_sh/file/vendor_absolute_path/absolute_1' lineNum='8''
+info: msg='Downloading & installing repo='https://github.com/WhisperingChaos/assert.source.sh' ver='9c4806e49bee4166b056aa627d1255549b1a4920' to directory='./config_test_sh/file/vendor_absolute_path/absolute_1/.' vendor.config='./config_test_sh/file/vendor_absolute_path/absolute_1' lineNum='9''
+TEST_CONFIG_SH_ABSOLUTE_PATH_WITH_HASH_OUT
+}
+
 
 main(){
 

@@ -306,13 +306,14 @@ config_entry_iterate(){
 	local pasTarOpts
 	local tarOptsCurr
 	local lineNum
+	local targetPath
 	local entry
 	local errOccr=0
 	while read -r entry; do
 		if [[ ${#entry} -ge $markLen ]] && [[ "${entry:0:$markLen}" = "$config__VENDOR_FILE_SCOPE_MARK" ]]; then
 			# extract file scope variables
 			entry=${entry:$markLen}
-			# declare file level variables and extablish their values
+			# declare file level variables and establish their values
 			eval $entry
 			continue
 		fi
@@ -346,17 +347,18 @@ config_entry_iterate(){
 		if [[ "$#" -ne "3" ]]; then
 			# record error but not problematic enough to stop processing
 			config_msg_error "'expecting exactly three columns:" \
-			" Relative Path, Github Repro Download URL, Version'" \
+			" Path, Github Repro Download URL, Version'" \
 			" vendorDir='$vendorDir' lineNum='$lineNum' actualColms='$#' entry='$entry'"
 			errOccr=1
 			continue
 		fi
-		config_install_report "$1" "$2" "$3" "$vendorDir"
-		if ! config_install "$1" "$2" "$3" "$vendorDir" "$tarOptsCurr"; then
+		config_install_target_path "$1" "$vendorDir" 'targetPath'
+		config_install_report "$targetPath" "$2" "$3" "$vendorDir" "$lineNum"
+		if ! config_install "$targetPath" "$2" "$3" "$tarOptsCurr"; then
 			# record error but not problematic enough to stop processing
 			config_msg_error "'component install failed'" \
-			" vendorDir='$vendorDir' lineNum='$lineNum' relPath='$1' repo='$2'" \
-			" version='$3' vendorDir='$vendorDir' tarOpts='$tarOptsCurr"
+			" vendorDir='$vendorDir' lineNum='$lineNum' path='$targetPath' repo='$2'" \
+			" version='$3' tarOpts='$tarOptsCurr"
 			errOccr=1
 			continue
 		fi
@@ -395,24 +397,40 @@ config_section_settings_extract(){
 	# no prior definition assume no opts
 	eval $rtnTarOpts\=\"\$opts\"
 }
+
+
+config_install_target_path(){
+	local entryPath="$1"
+	local -r vendorDir="$2"
+	local -r rtnTargetPath="$3"
+
+	# Permit absolute paths - assume absolute
+	if [ "$entryPath" == "${entryPath#/}" ]; then
+		# was relative
+		entryPath="$vendorDir/$entryPath"
+	fi
+	eval $rtnTargetPath\=\"\$entryPath\"
+}
+
+	
 config_install(){
-	local -r relPath="$1"
+	local targetPath="$1"
 	local -r repo="$2"
 	local -r ver="$3"
-	local -r vendorDir="$4"
-	local -r tarOpts="$5"
+	local -r tarOpts="$4"
 
-	local -r repoPath="$vendorDir/$relPath"
-	config_component_download "$repo/tarball/$ver" "$repoPath" "$tarOpts"
+	config_component_download "$repo/tarball/$ver" "$targetPath" "$tarOpts"
 }
 config_install_report(){
-	local -r relPath="$1"
+	local -r targetPath="$1"
 	local -r repo="$2"
 	local -r ver="$3"
 	local -r vendorDir="$4"
+	local -r lineNum=$5
 
    config_msg_info "Downloading & installing repo='$repo'"  \
-	  " ver='$3' to directory='$vendorDir/$relPath'"
+	  " ver='$3' to directory='$targetPath' vendor.config="   \
+    "'$vendorDir' lineNum='$lineNum'" 
 } 
 config_component_download(){
 	local -r repoVerUrl="$1"

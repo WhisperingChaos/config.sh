@@ -32,7 +32,7 @@ New Release Process:
     - Notes
       - As above, the format of ```vendor.config``` isn't fully functionally dependent on the other components of this repository :: it's assigned a different version variable.
       - Currently, the ```config.source.sh``` package located in file ```./component/config_sh/base/config.source.sh``` doesn't need this variable as a [control couple](https://en.wikipedia.org/wiki/Coupling_(computer_programming)).  However, future versions might.  Therefore, this version number may already reflect the correct one.
-  - After applying these changes, run the unit tests.  These tests should fail because they assert the value of the 
+  - After applying these changes, run the unit tests.  These tests **should fail** because they assert the prior semantic version values instead of the new ones.
   - Fix the assert version tests located in [```./test/config_test.sh```](./test/config_test.sh).
 - Create annotated tag:
   -  Replace the variables below with their variable values found in the source even if they haven't changed.

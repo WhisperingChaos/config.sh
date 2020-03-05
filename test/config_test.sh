@@ -528,7 +528,7 @@ test_config_sh(){
 		--- assert_false './config_test_sh/config.sh ./config_test_sh/file/vendor_tree_walk/too_deep'
 	assert_output_true test_config_sh_file_absolute_path_with_hash_out \
 		--- assert_true './config_test_sh/config.sh ./config_test_sh/file/vendor_absolute_path/absolute_1'
-	assert_output_true 	echo "version: v0.5" \
+	assert_output_true 	echo "version: v1.0" \
 		--- assert_true './config_test_sh/config.sh --version'
 
 	assert_return_code_set
@@ -551,8 +551,8 @@ TEST_CONFIG_SH_ABSOLUTE_PATH_WITH_HASH_OUT
 
 
 test_version_verify(){
-	assert_true "[[ 'v0.5' = \"$config__COMPONENT_SEMANTIC_VERSION\" ]]"
-	assert_true "[[ 'v0.5' = \"$config__VENDOR_CONFIG_SEMANTIC_VERSION\" ]]"
+	assert_true "[[ 'v1.0' = \"$config__COMPONENT_SEMANTIC_VERSION\" ]]"
+	assert_true "[[ 'v1.0' = \"$config__VENDOR_CONFIG_SEMANTIC_VERSION\" ]]"
 }
 
 

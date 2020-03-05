@@ -158,153 +158,153 @@ test_config__vendor_file_entries_single_line(){
 test_config__vendor_file_single_ws_output(){
 	echo "1 $( test_config__vendor_file_entries_single_line )" 
 }
-test_config_section_settings_extract(){
-	assert_true test_config_section_settings_extract_all_good
-	assert_true test_config_section_settings_extract_name_starts_with_at_least_3_characters
-	assert_true test_config_section_settings_extract_section_qualifier_between_words
-	assert_true test_config_section_settings_extract_name_contains_illegal_characters
-	assert_true test_config_section_settings_extract_name_less_than_3_characters
-	assert_true test_config_section_settings_extract_name_period_start
-	assert_true test_config_section_settings_extract_name_period_end
-	assert_true test_config_section_settings_extract_name_values_empty
-	assert_true test_config_section_settings_extract_empty_section
-	assert_true test_config_section_settings_extract_strip
-	assert_true test_config_section_settings_extract_prior_def
-	assert_true test_config_section_settings_extract_prior_def_change
+test_config__section_settings_extract(){
+	assert_true test_config__section_settings_extract_all_good
+	assert_true test_config__section_settings_extract_name_starts_with_at_least_3_characters
+	assert_true test_config__section_settings_extract_section_qualifier_between_words
+	assert_true test_config__section_settings_extract_name_contains_illegal_characters
+	assert_true test_config__section_settings_extract_name_less_than_3_characters
+	assert_true test_config__section_settings_extract_name_period_start
+	assert_true test_config__section_settings_extract_name_period_end
+	assert_true test_config__section_settings_extract_name_values_empty
+	assert_true test_config__section_settings_extract_empty_section
+	assert_true test_config__section_settings_extract_strip
+	assert_true test_config__section_settings_extract_prior_def
+	assert_true test_config__section_settings_extract_prior_def_change
 }
-test_config_section_settings_extract_all_good(){
+test_config__section_settings_extract_all_good(){
 	local -A pasSectionDefs
 	local pasTarOpts
-	assert_true	"config_section_settings_extract '[test] --strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true	"config__section_settings_extract '[test] --strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "${pasSectionDefs[test]}" == "$pasTarOpts" ]'
 	assert_true '[ "$pasTarOpts" = "--strip-component=2 --wildcards */component" ]'
 }
-test_config_section_settings_extract_name_starts_with_at_least_3_characters(){
+test_config__section_settings_extract_name_starts_with_at_least_3_characters(){
 	local -A pasSectionDefs
 	local pasTarOpts
-	assert_true	"config_section_settings_extract '[tes] --strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true	"config__section_settings_extract '[tes] --strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "${pasSectionDefs[tes]}" == "$pasTarOpts" ]'
 	assert_true '[ "$pasTarOpts" = "--strip-component=2 --wildcards */component" ]'
 }
-test_config_section_settings_extract_section_qualifier_between_words(){
+test_config__section_settings_extract_section_qualifier_between_words(){
 	local -A pasSectionDefs
 	local pasTarOpts
-	assert_true	"config_section_settings_extract '[tes.it]--strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true	"config__section_settings_extract '[tes.it]--strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "${pasSectionDefs[tes.it]}" == "$pasTarOpts" ]'
 	assert_true '[ "$pasTarOpts" = "--strip-component=2 --wildcards */component" ]'
 }
-test_config_section_settings_extract_name_contains_illegal_characters(){
+test_config__section_settings_extract_name_contains_illegal_characters(){
 	local -A pasSectionDefs
 	local pasTarOpts
-	assert_false	"config_section_settings_extract '[tesiti!] --strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_false	"config__section_settings_extract '[tesiti!] --strip-component=2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 0 ]'
 }
-test_config_section_settings_extract_name_less_than_3_characters(){
+test_config__section_settings_extract_name_less_than_3_characters(){
 	local -A pasSectionDefs
 	local pasTarOpts
-	assert_false	"config_section_settings_extract '[te] --strip-component 2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_false	"config__section_settings_extract '[te] --strip-component 2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
 }
-test_config_section_settings_extract_name_period_start(){
+test_config__section_settings_extract_name_period_start(){
 	local -A pasSectionDefs
 	local pasTarOpts
-	assert_false	"config_section_settings_extract '[.te] --strip-component 2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_false	"config__section_settings_extract '[.te] --strip-component 2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
 }
-test_config_section_settings_extract_name_period_end(){
+test_config__section_settings_extract_name_period_end(){
 	local -A pasSectionDefs
 	local pasTarOpts
-	assert_false	"config_section_settings_extract '[test.] --strip-component 2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
+	assert_false	"config__section_settings_extract '[test.] --strip-component 2 --wildcards */component' 'pasSectionDefs' 'pasTarOpts'"
 }
-test_config_section_settings_extract_name_values_empty(){
+test_config__section_settings_extract_name_values_empty(){
 	local -A pasSectionDefs
 	local pasTarOpts
-	assert_true	"config_section_settings_extract '[tes.it]  ' 'pasSectionDefs' 'pasTarOpts'"
-	assert_true '[ ${#pasSectionDefs[@]} -eq 0 ]'
-	assert_true '[ -z "$pasTarOpts" ]'
-}
-test_config_section_settings_extract_empty_section(){
-	local -A pasSectionDefs
-	local pasTarOpts
-	assert_true	"config_section_settings_extract '[test.section]' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true	"config__section_settings_extract '[tes.it]  ' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 0 ]'
 	assert_true '[ -z "$pasTarOpts" ]'
 }
-test_config_section_settings_extract_strip(){
+test_config__section_settings_extract_empty_section(){
 	local -A pasSectionDefs
 	local pasTarOpts
-	assert_true	"config_section_settings_extract '[test.section] --strip-component 3' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true	"config__section_settings_extract '[test.section]' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true '[ ${#pasSectionDefs[@]} -eq 0 ]'
+	assert_true '[ -z "$pasTarOpts" ]'
+}
+test_config__section_settings_extract_strip(){
+	local -A pasSectionDefs
+	local pasTarOpts
+	assert_true	"config__section_settings_extract '[test.section] --strip-component 3' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "${pasSectionDefs[test.section]}" = "$pasTarOpts" ]'
 	assert_true '[ "$pasTarOpts" = "--strip-component 3" ]'
 }
-test_config_section_settings_extract_prior_def(){
+test_config__section_settings_extract_prior_def(){
 	local -A pasSectionDefs
 	local pasTarOpts
 	local -r tarOptsExpected='--wildcards ./ --strip-component 5'
-	assert_true "config_section_settings_extract '[test.section] $tarOptsExpected' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true "config__section_settings_extract '[test.section] $tarOptsExpected' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "$pasTarOpts" = "$tarOptsExpected" ]'
 	pasTarOpts=''
-	assert_true	"config_section_settings_extract '[test.section]' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true	"config__section_settings_extract '[test.section]' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "$pasTarOpts" = "$tarOptsExpected" ]'
 }
-test_config_section_settings_extract_prior_def_change(){
+test_config__section_settings_extract_prior_def_change(){
 	local -A pasSectionDefs
 	local pasTarOpts
 	local -r tarOptsExpected='--wildcards ./ --strip-component 5'
-	assert_true "config_section_settings_extract '[test.section] $tarOptsExpected' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true "config__section_settings_extract '[test.section] $tarOptsExpected' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "$pasTarOpts" = "$tarOptsExpected" ]'
 	pasTarOpts=''
-	assert_true	"config_section_settings_extract '[test.section]' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true	"config__section_settings_extract '[test.section]' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "$pasTarOpts" = "$tarOptsExpected" ]'
 	pasStripVal=''
 	local -r tarOptNewVal='--strip-component 6'
-	assert_true	"config_section_settings_extract '[test.section] $tarOptNewVal' 'pasSectionDefs' 'pasTarOpts'"
+	assert_true	"config__section_settings_extract '[test.section] $tarOptNewVal' 'pasSectionDefs' 'pasTarOpts'"
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "$pasTarOpts" = "$tarOptNewVal" ]'
 }
-test_config_install()(
+test_config__install()(
 	local pasRepoVersion
 	local pasComponentLocalPath
 	local pasTarOpts
 
-	config_component_download(){
+	config__component_download(){
 		pasRepoVersion=$1
 		pasComponentLocalPath="$2"
 		pasTarOpts="$3"
 		true
 	}
-	assert_true test_config_install_entire_tarball
-	assert_true test_config_install_with_strip
-	assert_true test_config_install_with_strip_wildcards
+	assert_true test_config__install_entire_tarball
+	assert_true test_config__install_with_strip
+	assert_true test_config__install_with_strip_wildcards
 
 	assert_return_code_set
 )
 
 
-test_config_install_entire_tarball(){
-	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master'"
+test_config__install_entire_tarball(){
+	assert_true "config__install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master'"
 	assert_true '[[ "$pasRepoVersion" == '\''https://github.com/WhisperingChaos/config.sh/tarball/master'\'' ]]'
 	assert_true '[[ "$pasComponentLocalPath" == "component" ]]'
 	assert_true '[[ -z "$pasTarOpts" ]]'
 }
 
 
-test_config_install_with_strip(){
-	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '--strip-component=5'"
+test_config__install_with_strip(){
+	assert_true "config__install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '--strip-component=5'"
 	assert_true '[[ "$pasRepoVersion" == '\''https://github.com/WhisperingChaos/config.sh/tarball/master'\'' ]]'
 	assert_true '[[ "$pasComponentLocalPath" == "component" ]]'
 	assert_true '[[ "$pasTarOpts" == '\''--strip-component=5'\'' ]]'
 }
 
 
-test_config_install_with_strip_wildcards(){
-	assert_true "config_install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '--strip-component=5 --wildcards config.source.sh'"
+test_config__install_with_strip_wildcards(){
+	assert_true "config__install 'component' 'https://github.com/WhisperingChaos/config.sh' 'master' '--strip-component=5 --wildcards config.source.sh'"
 	assert_true '[[ "$pasRepoVersion" == '\''https://github.com/WhisperingChaos/config.sh/tarball/master'\'' ]]'
 	assert_true '[[ "$pasComponentLocalPath" == "component" ]]'
 	local opts="--strip-component=5 --wildcards config.source.sh"
@@ -312,24 +312,24 @@ test_config_install_with_strip_wildcards(){
 }
 
 
-test_config_section_default_bash_component(){
+test_config__section_default_bash_component(){
 	local -A pasSectionDefs
 	local -r expected='--strip-component=2 --wildcards --no-wildcards-match-slash --anchor '\''*/component'\'
-	assert_true "config_section_default_bash_component 'pasSectionDefs'" 
+	assert_true "config__section_default_bash_component 'pasSectionDefs'" 
 	assert_true '[ ${#pasSectionDefs[@]} -eq 1 ]'
 	assert_true '[ "${pasSectionDefs[whisperingchaos.bash.component]}" == "$expected" ]'
 }
-test_config_entry_iterate()(
-	config_install_report(){
+test_config__entry_iterate()(
+	config__install_report(){
 		return
 	}
-	config_component_download(){
+	config__component_download(){
 		echo "$1" --- "$2" --- "$3"
 	}
-	assert_true 'test_config__vendor_file_single_section | config_entry_iterate | assert_output_true test_config__vendor_file_single_section_out'  
-	assert_true 'test_config__vendor_file_two_sections | config_entry_iterate | assert_output_true test_config__vendor_file_two_sections_out'
-	assert_true 'test_config__vendor_file_reference_prior_sections | config_entry_iterate | assert_output_true test_config__vendor_file_reference_prior_sections_out'
-	assert_true 'test_config__vendor_file_default_section | config_entry_iterate | assert_output_true test_config__vendor_file_default_section_out'
+	assert_true 'test_config__vendor_file_single_section | config__entry_iterate | assert_output_true test_config__vendor_file_single_section_out'  
+	assert_true 'test_config__vendor_file_two_sections | config__entry_iterate | assert_output_true test_config__vendor_file_two_sections_out'
+	assert_true 'test_config__vendor_file_reference_prior_sections | config__entry_iterate | assert_output_true test_config__vendor_file_reference_prior_sections_out'
+	assert_true 'test_config__vendor_file_default_section | config__entry_iterate | assert_output_true test_config__vendor_file_default_section_out'
 
 	assert_return_code_set
 )
@@ -441,14 +441,14 @@ test_config__pipe_status_ok(){
 }
 
 
-test_config_msg_error(){
-	assert_true 'test_config_msg_error_generate | assert_output_true test_config_msg_error_expected'
+test_config__msg_error(){
+	assert_true 'test_config__msg_error_generate | assert_output_true test_config__msg_error_expected'
 }
-test_config_msg_error_generate(){
-	config_msg_error "testing error message" 2>&1 
+test_config__msg_error_generate(){
+	config__msg_error "testing error message" 2>&1 
 }
-test_config_msg_error_expected(){
-	echo "${assert_REGEX_COMPARE}error: msg='testing error message' func_name='test_config_msg_error_generate' line_no=[0-9]+ source_file='./config_test.sh' time=.*"
+test_config__msg_error_expected(){
+	echo "${assert_REGEX_COMPARE}error: msg='testing error message' func_name='test_config__msg_error_generate' line_no=[0-9]+ source_file='./config_test.sh' time=.*"
 }
 test_config_tree_walk(){
 
@@ -491,7 +491,7 @@ vendorfile
 
 test_config_tree_walk_generate_bad_component_vendor_output(){
 	echo "${assert_REGEX_COMPARE}^info: msg='Downloading \& installing repo='https://github.com/WhisperingChaos/doesnotexist' ver='master' to directory='\./config_test_sh/file/vendor_tree_walk/bad_component_repository/assert' vendor.config='\./config_test_sh/file/vendor_tree_walk/bad_component_repository' lineNum='[0-9]+''"
-	echo "${assert_REGEX_COMPARE}^error: msg\=''component install failed' vendorDir\='\./config_test_sh/file/vendor_tree_walk/bad_component_repository' lineNum='[0-9]+' path='\./config_test_sh/file/vendor_tree_walk/bad_component_repository/assert' repo='https://github\.com/WhisperingChaos/doesnotexist' version='master' tarOpts\='\-\-strip-component=2 \-\-wildcards \-\-no\-wildcards\-match\-slash \-\-anchor '\*/component'' func_name='config_entry_iterate' line_no=[0-9]+ source_file='\./config_test_sh/base/config\.source\.sh' time\='[^']+'"
+	echo "${assert_REGEX_COMPARE}^error: msg\=''component install failed' vendorDir\='\./config_test_sh/file/vendor_tree_walk/bad_component_repository' lineNum='[0-9]+' path='\./config_test_sh/file/vendor_tree_walk/bad_component_repository/assert' repo='https://github\.com/WhisperingChaos/doesnotexist' version='master' tarOpts\='\-\-strip-component=2 \-\-wildcards \-\-no\-wildcards\-match\-slash \-\-anchor '\*/component'' func_name='config__entry_iterate' line_no=[0-9]+ source_file='\./config_test_sh/base/config\.source\.sh' time\='[^']+'"
 }
 
 
@@ -551,7 +551,7 @@ TEST_CONFIG_SH_ABSOLUTE_PATH_WITH_HASH_OUT
 
 
 test_version_verify(){
-	assert_true "[[ 'v1.0' = \"$config__COMPONENT_SEMANTIC_VERSION\" ]]"
+	assert_true "[[ 'v1.1' = \"$config__COMPONENT_SEMANTIC_VERSION\" ]]"
 	assert_true "[[ 'v1.0' = \"$config__VENDOR_CONFIG_SEMANTIC_VERSION\" ]]"
 }
 
@@ -564,16 +564,16 @@ main(){
 		return
 	fi
 
-	test_config_msg_error
+	test_config__msg_error
 	test_config__pipe_status_ok
 	test_config__vendor_banner_detected
 	test_config__vendor_shebang_detected
 	test_config__vendor_read
 	test_config__vendor_whitespace_exclude
-	test_config_section_settings_extract
-	assert_return_code_child_failure_relay	test_config_install
-	test_config_section_default_bash_component
-	assert_return_code_child_failure_relay  test_config_entry_iterate
+	test_config__section_settings_extract
+	assert_return_code_child_failure_relay	test_config__install
+	test_config__section_default_bash_component
+	assert_return_code_child_failure_relay  test_config__entry_iterate
 	test_execute_clean	test_config_tree_walk
 	test_execute_clean	test_config_sh
 	test_version_verify

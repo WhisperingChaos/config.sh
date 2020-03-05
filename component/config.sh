@@ -30,13 +30,10 @@ configSh__option_process(){
 		configSh__help_doc
 		;;
 		(-v|--version)
-		configSh__vendor_version
+		configSh__version
 		;;
 		(--sample)
 		config_vendor_format_example
-		;;
-		(--hformat)
-		config_vendor_format_help
 		;;
 		*)
 		return 1
@@ -57,7 +54,6 @@ its subdirectories.
 OPTION:
 
   --sample     Display sample 'vendor.config' file & exit.
-  --hformat    Display explaination of 'vendor.config' format & exit.
   -h,--help    Display help & exit.
   -v,--version Display version information & exit.
 
@@ -80,8 +76,9 @@ CONFIGSH__HELP_DOC
 }
 	
 
-configSh__vendor_version(){
-	echo version: v1.0
+configSh__version(){
+	local -r configSh__vendor_version='v1.0'
+	echo "version: $configSh__vendor_version"
 }
 
 

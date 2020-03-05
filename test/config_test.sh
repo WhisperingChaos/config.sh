@@ -5,7 +5,7 @@ source ./config_test_sh/sourcer/base/sourcer.build.source.sh ./config_test_sh/so
 
 
 test_config__vendor_banner_detected(){
-	assert_true "echo '#<vendor.config:1.0>' | config__vendor_banner_detected"
+	assert_true "echo '#<vendor.config:v1.0>' | config__vendor_banner_detected"
 	assert_true 'test_config__vendor_banner_white_space | config__vendor_banner_detected'
 	assert_false "echo '#<vendorxconfig:1.0>' | config__vendor_banner_detected"
 
@@ -15,12 +15,12 @@ test_config__vendor_banner_detected(){
 }
 
 test_config__vendor_banner_white_space(){
-	echo ' 	#<vendor.config:1.0>' 
+	echo ' 	#<vendor.config:v1.0>' 
 }
 
 test_config__vendor_banner_not_first(){
 	echo '# hi there!'
-	echo '#<vendor.config:1.0>' 
+	echo '#<vendor.config:v1.0>' 
 }
 test_config__vendor_shebang_detected(){
 	assert_false 'test_config__vendor_bash_shebang | config__vendor_shebang_detected'
@@ -38,19 +38,19 @@ test_config__vendor_bash_shebang_plus(){
 }
 test_config__vendor_shell_shebang_vendor(){
 	echo "#!/bin/sh -x"
-	echo '#<vendor.config:1.0>' 
+	echo '#<vendor.config:v1.0>' 
 }
 test_config__vendor_bash_shebang_vendor(){
 	echo "#!/bin/bash"
-	echo '#<vendor.config:1.0>' 
+	echo '#<vendor.config:v1.0>' 
 }
 test_config__vendor_bash_vendor_shebang(){
-	echo '#<vendor.config:1.0>' 
+	echo '#<vendor.config:v1.0>' 
 	echo "#!/bin/bash"
 }
 test_config__vendor_bad_shebang_vendor(){
 echo "#!"
-echo '#<vendor.config:1.0>' 
+echo '#<vendor.config:v1.0>' 
 }
 test_config__vendor_read(){
 	assert_true "test_config__vendor_temp_file_reading test_config__vendor_file_empty test_config__vendor_file_empty_output"
@@ -140,7 +140,7 @@ test_config__vendor_whitespace_exclude(){
 	assert_true 'test_config__vendor_file_entries_single_line | config__vendor_whitespace_exclude | assert_output_true test_config__vendor_file_single_ws_output'
 }
 test_config__vendor_file_entries_single_line_comments(){
-	echo '#<vendor.config:1.0>'
+	echo '#<vendor.config:v1.0>'
 	echo '# my comment'
 	echo '# another comment'
 	echo '         '
@@ -470,7 +470,7 @@ test_config_tree_walk(){
 }
 test_config_tree_walk_generate_one_component_vendor(){
 	cat <<'vendorfile'
-#<vendor.config:1.0>
+#<vendor.config:v1.0>
 [whisperingchaos.bash.component]
 assert	https://github.com/WhisperingChaos/assert.source.sh master
 vendorfile
@@ -483,7 +483,7 @@ test_config_tree_walk_one_bad(){
 }
 test_config_tree_walk_generate_bad_component_vendor(){
 	cat <<'vendorfile'
-#<vendor.config:1.0>
+#<vendor.config:v1.0>
 [whisperingchaos.bash.component]
 assert	https://github.com/WhisperingChaos/doesnotexist master
 vendorfile
@@ -522,14 +522,14 @@ test_execute_clean(){
 
 test_config_sh(){
 
-	assert_output_true config_vendor_format_help \
-		--- assert_true './config_test_sh/config.sh --hformat'
 	assert_output_true config_vendor_format_example \
 		--- assert_true './config_test_sh/config.sh --sample'
 	assert_output_true test_config_sh_file_search_too_deep_error_out \
 		--- assert_false './config_test_sh/config.sh ./config_test_sh/file/vendor_tree_walk/too_deep'
 	assert_output_true test_config_sh_file_absolute_path_with_hash_out \
 		--- assert_true './config_test_sh/config.sh ./config_test_sh/file/vendor_absolute_path/absolute_1'
+	assert_output_true 	echo "version: v0.5" \
+		--- assert_true './config_test_sh/config.sh --version'
 
 	assert_return_code_set
 }
@@ -547,6 +547,12 @@ ${assert_REGEX_COMPARE}^info: msg\='Downloading & installing repo='https://githu
 info: msg='Downloading & installing repo='https://github.com/WhisperingChaos/assert.source.sh' ver='9c4806e49bee4166b056aa627d1255549b1a4920' to directory='./config_test_sh/file/vendor_absolute_path/absolute_1/absolute_1' vendor.config='./config_test_sh/file/vendor_absolute_path/absolute_1' lineNum='8''
 info: msg='Downloading & installing repo='https://github.com/WhisperingChaos/assert.source.sh' ver='9c4806e49bee4166b056aa627d1255549b1a4920' to directory='./config_test_sh/file/vendor_absolute_path/absolute_1/.' vendor.config='./config_test_sh/file/vendor_absolute_path/absolute_1' lineNum='9''
 TEST_CONFIG_SH_ABSOLUTE_PATH_WITH_HASH_OUT
+}
+
+
+test_version_verify(){
+	assert_true "[[ 'v0.5' = \"$config__COMPONENT_SEMANTIC_VERSION\" ]]"
+	assert_true "[[ 'v0.5' = \"$config__VENDOR_CONFIG_SEMANTIC_VERSION\" ]]"
 }
 
 
@@ -570,6 +576,7 @@ main(){
 	assert_return_code_child_failure_relay  test_config_entry_iterate
 	test_execute_clean	test_config_tree_walk
 	test_execute_clean	test_config_sh
+	test_version_verify
 
 	assert_return_code_set
 }

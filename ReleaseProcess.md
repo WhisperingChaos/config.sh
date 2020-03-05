@@ -38,5 +38,5 @@ New Release Process:
   -  Replace the variables below with their variable values found in the source even if they haven't changed.
     - ```git tag -a <<configSh__vendor_version>> -m "./component/config.sh: <<configSh__vendor_version>>, ./component/config_sh/base/config.source.sh: <<config__COMPONENT_SEMANTIC_VERSION>>, vendor.config: <<config__COMPONENT_SEMANTIC_VERSION>> "```
   - Push tag to github:
-    - ```git push origin --tag # new tag```
+    - ```git push origin --tag <<new_tag>>```
 

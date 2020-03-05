@@ -31,7 +31,6 @@ its subdirectories.
 OPTION:
 
   --sample     Display sample 'vendor.config' file & exit.
-  --hformat    Display explaination of 'vendor.config' format & exit.
   -h,--help    Display help & exit.
   -v,--version Display version information & exit.
 
@@ -62,7 +61,7 @@ Define one or more aggregate components through the composition of shared, more 
 #### Sample
 
 ```
-#<vendor.config:1.0>
+#<vendor.config:v1.0>
 # banner above
 # this is a comment
 # section name:

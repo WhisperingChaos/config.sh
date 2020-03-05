@@ -42,7 +42,7 @@ config_vendor_tree_walk(){
 	config__vendor_file_search_depth_first "$rootDir" '0' \
 	| config__vendor_read                                 \
 	| config__vendor_whitespace_exclude                   \
-	| config_entry_iterate
+	| config__entry_iterate
 	config__pipe_status_ok "${PIPESTATUS[@]}"
 }
 
@@ -74,7 +74,7 @@ CONFIG_VENDOR_FORMAT_EXAMPLE
 # physically modify this file.
 ###############################################################################
 
-declare -g config__COMPONENT_SEMANTIC_VERSION=v1.0
+declare -g config__COMPONENT_SEMANTIC_VERSION=v1.1
 declare -g config__VENDOR_CONFIG_SEMANTIC_VERSION=v1.0
 declare -g config__VENDOR_MARK_DETECTOR='^#<vendor\.config:([[:alnum:]]+[.-][[:alnum:]]+)+>$'
 declare -g config__VENDOR_LINENO_DETECTOR='^([0-9]+)[\ ]'
@@ -127,7 +127,7 @@ config__vendor_file_search_too_deep_error(){
 	local -ri levelMax=$1
 	local -r subdir="$2"
 
-	config_msg_error 'Attempting to dive into directory: '"'$subdir'"' but its' \
+	config__msg_error 'Attempting to dive into directory: '"'$subdir'"' but its' \
 		' depth exceeds maximum level of: '"'$levelMax'"'.' '  If max level too'  \
 		' small then increase value of variable config__VENDOR_VISIT_LEVEL_MAX'   \
 		' using override mechanism.'
@@ -138,7 +138,7 @@ config__vendor_too_many_components_error(){
 	local -ri compMax=$1
 	local -r  subdirStop="$2"
 
-	config_msg_error 'Maximum component count: '"'$compMax'"' exceeded for a given' \
+	config__msg_error 'Maximum component count: '"'$compMax'"' exceeded for a given' \
 		' level while starting to process directory: '"'$subdirStop'"'.  This and all' \
 		' component directories that sort after it were not processed.  If you'    \
 		' want to exceed this limit increase the value of variable:'               \
@@ -173,7 +173,7 @@ config__vendor_read(){
 	local command
 	while read -r command; do
 		if ! [[ "$command" =~ ^(cat|subshell)[\ ](.+)$ ]]; then
-			config_msg_error "'logic error - malformed command' command='$vendorFilePath'"
+			config__msg_error "'logic error - malformed command' command='$vendorFilePath'"
 			return 1
 		fi
 		local commandOp="${BASH_REMATCH[1]}"
@@ -209,10 +209,10 @@ config__vendor_whitespace_exclude(){
 }
 
 
-config_entry_iterate(){
+config__entry_iterate(){
 
 	local -A pasSectionDefs
-	if ! config_section_default_bash_component 'pasSectionDefs'; then
+	if ! config__section_default_bash_component 'pasSectionDefs'; then
 		return 1
 	fi
 
@@ -232,15 +232,15 @@ config_entry_iterate(){
 			continue
 		fi
 		if ! [[ "$entry" =~ ${config__VENDOR_LINENO_DETECTOR}(.+) ]]; then
-			config_msg_error "'internal line number missing - error in program'" \
+			config__msg_error "'internal line number missing - error in program'" \
 			" vendorDir='$vendorDir' lineNum='$lineNum' entry='$entry'"
 			return 1
 		fi
 		lineNum="${BASH_REMATCH[1]}"
 		entry="${BASH_REMATCH[2]}"
 		if [[ "$entry" =~ $config__VENDOR_SECTION_DETECTOR ]]; then
-			if ! config_section_settings_extract "$entry" 'pasSectionDefs' 'pasTarOpts'; then
-				config_msg_error "'error(s) while processing section definition'" \
+			if ! config__section_settings_extract "$entry" 'pasSectionDefs' 'pasTarOpts'; then
+				config__msg_error "'error(s) while processing section definition'" \
 				" vendorDir='$vendorDir' lineNum='$lineNum'"
 				return 1
 			fi
@@ -260,17 +260,17 @@ config_entry_iterate(){
 		eval set -- $entry
 		if [[ "$#" -ne "3" ]]; then
 			# record error but not problematic enough to stop processing
-			config_msg_error "'expecting exactly three columns:" \
+			config__msg_error "'expecting exactly three columns:" \
 			" Path, Github Repro Download URL, Version'" \
 			" vendorDir='$vendorDir' lineNum='$lineNum' actualColms='$#' entry='$entry'"
 			errOccr=1
 			continue
 		fi
-		config_install_target_path "$1" "$vendorDir" 'targetPath'
-		config_install_report "$targetPath" "$2" "$3" "$vendorDir" "$lineNum"
-		if ! config_install "$targetPath" "$2" "$3" "$tarOptsCurr"; then
+		config__install_target_path "$1" "$vendorDir" 'targetPath'
+		config__install_report "$targetPath" "$2" "$3" "$vendorDir" "$lineNum"
+		if ! config__install "$targetPath" "$2" "$3" "$tarOptsCurr"; then
 			# record error but not problematic enough to stop processing
-			config_msg_error "'component install failed'" \
+			config__msg_error "'component install failed'" \
 			" vendorDir='$vendorDir' lineNum='$lineNum' path='$targetPath' repo='$2'" \
 			" version='$3' tarOpts='$tarOptsCurr"
 			errOccr=1
@@ -279,18 +279,18 @@ config_entry_iterate(){
 	done
 	return $errOccr
 }
-config_section_default_bash_component(){
+config__section_default_bash_component(){
 	local rtnSectionDefs="$1"
 
 	local pasOptsVal
 	local sectionDefault="[whisperingchaos.bash.component] --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component'"
-	if ! config_section_settings_extract "$sectionDefault" "$rtnSectionDefs" \
+	if ! config__section_settings_extract "$sectionDefault" "$rtnSectionDefs" \
 	   	'pasOptsVal'; then
-		config_msg_error "Failed to parse default section settings='$sectionDefault'"
+		config__msg_error "Failed to parse default section settings='$sectionDefault'"
 		return 1
 	fi
 }
-config_section_settings_extract(){
+config__section_settings_extract(){
 	local -r sectionDefMaybe="$1"
 	local -r rtnSectionDefs="$2"
 	local -r rtnTarOpts="$3"
@@ -313,7 +313,7 @@ config_section_settings_extract(){
 }
 
 
-config_install_target_path(){
+config__install_target_path(){
 	local entryPath="$1"
 	local -r vendorDir="$2"
 	local -r rtnTargetPath="$3"
@@ -327,32 +327,32 @@ config_install_target_path(){
 }
 
 	
-config_install(){
+config__install(){
 	local targetPath="$1"
 	local -r repo="$2"
 	local -r ver="$3"
 	local -r tarOpts="$4"
 
-	config_component_download "$repo/tarball/$ver" "$targetPath" "$tarOpts"
+	config__component_download "$repo/tarball/$ver" "$targetPath" "$tarOpts"
 }
-config_install_report(){
+config__install_report(){
 	local -r targetPath="$1"
 	local -r repo="$2"
 	local -r ver="$3"
 	local -r vendorDir="$4"
 	local -r lineNum=$5
 
-   config_msg_info "Downloading & installing repo='$repo'"  \
+   config__msg_info "Downloading & installing repo='$repo'"  \
 	  " ver='$3' to directory='$targetPath' vendor.config="   \
     "'$vendorDir' lineNum='$lineNum'" 
 } 
-config_component_download(){
+config__component_download(){
 	local -r repoVerUrl="$1"
 	local -r componentLocalPath="$2"
 	local -r tarOpts="$3"
 
 	if ! mkdir -p  "$componentLocalPath"; then
-		config_msg_error "'failed to create local path'" \
+		config__msg_error "'failed to create local path'" \
 		" componentLocalPath='$componentLocalPath'"
 		return 1
 	fi
@@ -374,7 +374,7 @@ config__pipe_status_ok(){
 }
 
 
-config_msg_error() {
+config__msg_error() {
 	# due to bootstrap nature of config, better to replicate code than source it
 	# therefore, it doesn't source the 'msg_' package
 	local msg
@@ -384,7 +384,7 @@ config_msg_error() {
 	done
 	echo "error: msg='$msg' func_name='${FUNCNAME[1]}' line_no=${BASH_LINENO[1]} source_file='${BASH_SOURCE[1]}' time='$(date --iso-8601=ns)'" >&2
 }
-config_msg_info(){
+config__msg_info(){
 	
 	local msg
 	while [[ $# -gt 0 ]]; do

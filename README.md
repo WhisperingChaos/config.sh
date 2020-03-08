@@ -11,7 +11,17 @@ The recursive walk first processes the ```vendor.config```, if it exists, in the
 Although the features of this script can be broadly applied, it was written as a tool to enable constructing scripts that adhere to principles outlined by [SOLID_Bash](https://github.com/WhisperingChaos/SOLID_Bash).
 
 ### Install
+```config.sh``` script can be either dynamically incroporated or statically copied into a project (repository).  Dynamic incorporation reduces your project's repository footprint as it relies on a simple bootstrap script which when executed downloads and runs ```config.sh```.  Also, the default bootstrap behavior delivers the latest version of ```config.sh```.  Meanwhile, the static method replicates a copy of a desired version of ```config.sh``` into a project.  This method eliminates the dependency between the consuming project and this repository.  It also guarantees the consistency of ```config.sh```'s behavior and interface.
 
+#### Dynamic Bootstrap
+Copy [```./bootstrap/config.sh```](./bootstrap/config.sh) to an appropriate directory in your project.  By default, running this ```config.sh``` proxy will download and install the actual one to a subdirectory named ```config_sh``` whose parent contains the proxy.  After completing the download, the proxy will execute the actual ```config.sh``` and by default treat the ```config_sh/vendor``` directory as the root to begin its search for ```vendor.config```.  These defaults can be overridden.  View the comments in [```./bootstrap/config.sh```](./bootstrap/config.sh) for the order and descriptions of arguments.
+
+Use the following to download the latest bootstrap:
+```
+>wget -O - "https://github.com/WhisperingChaos/config.sh/tarball/master" | tar -xz -C ./  --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/bootstrap'
+```
+
+#### Static Include
 Use ```wget``` below to copy the desired version of ```config.sh``` to the currnet working directory.  Replace ```<version>``` with the desired repository branch, tag, or commit hash label:
 
 ```

@@ -85,7 +85,17 @@ configSh__version(){
 configSh__root_dir_exist_error(){
 	local -r rootBad="$1"
 
-	config_msg_error 'Cannot access directory: "' "$rootBad" '" either it does not exist or privilege violation occurred.'
+	configSh__msg_error 'Cannot access directory: "' "$rootBad" '" either it does not exist or privilege violation occurred.'
+}
+
+
+configSh__msg_error() {
+	local msg
+	while [[ $# -gt 0 ]]; do
+		msg=$msg$1
+		shift
+	done
+	echo "error: msg='$msg' func_name='${FUNCNAME[1]}' line_no=${BASH_LINENO[1]} source_file='${BASH_SOURCE[1]}' time='$(date --iso-8601=ns)'" >&2
 }
 
 

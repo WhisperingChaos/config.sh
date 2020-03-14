@@ -528,7 +528,7 @@ test_config_sh(){
 		--- assert_false './config_test_sh/config.sh ./config_test_sh/file/vendor_tree_walk/too_deep'
 	assert_output_true test_config_sh_file_absolute_path_with_hash_out \
 		--- assert_true './config_test_sh/config.sh ./config_test_sh/file/vendor_absolute_path/absolute_1'
-	assert_output_true 	echo "version: v1.1" \
+	assert_output_true 	echo "version: v1.2" \
 		--- assert_true './config_test_sh/config.sh --version'
 
 	assert_return_code_set

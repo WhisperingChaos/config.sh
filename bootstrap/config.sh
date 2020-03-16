@@ -18,8 +18,8 @@
 main(){
 	local -r bootRoot="$(dirname "${BASH_SOURCE[0]}")"
 	local -r configVer="${1:-master}"
-	local 	 vendorPath="$2"
-	local    installPath="$3"
+	local    installPath="$2"
+	local 	 vendorPath="$3"
 
 	if [[ -z "$installPath" ]]; then 
 		installPath="$bootRoot/config_sh"
@@ -34,7 +34,7 @@ main(){
 	fi
 
 	local -r repoVerUrl='https://github.com/WhisperingChaos/config.sh/tarball/'"$configVer"
-	wget --dns-timeout=5 --connect-timeout=10 --read-timeout=60 -O -  "$repoVerUrl" \
+	wget --dns-timeout=5 --connect-timeout=10 --read-timeout=60 -O -  "$repoVerUrl" 2>/dev/null \
 	| tar -xz -C $installPath --strip-component=2 --wildcards --no-wildcards-match-slash --anchor '*/component/'
 
 	"$installPath/config.sh" "$vendorPath" 

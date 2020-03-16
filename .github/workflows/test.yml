@@ -13,6 +13,9 @@ jobs:
       run: cd test; ./config.sh
     - name: Run Test
       run: cd test; ./config_test.sh
+    - name: Run Boot Test
+      run: cd test; ./config_boot_test.sh
+
       
   test-16-04:
 
@@ -24,3 +27,6 @@ jobs:
       run: cd test; ./config.sh
     - name: Run Test
       run: cd test; ./config_test.sh
+    - name: Run Boot Test
+      run: cd test; ./config_boot_test.sh
+

@@ -77,7 +77,7 @@ CONFIGSH__HELP_DOC
 	
 
 configSh__version(){
-	local -r configSh__vendor_version='v1.2'
+	local -r configSh__vendor_version='v1.3'
 	echo "version: $configSh__vendor_version"
 }
 

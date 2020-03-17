@@ -75,7 +75,7 @@ CONFIG_VENDOR_FORMAT_EXAMPLE
 # physically modify this file.
 ###############################################################################
 
-declare -g config__COMPONENT_SEMANTIC_VERSION=v1.1
+declare -g config__COMPONENT_SEMANTIC_VERSION=v1.2
 declare -g config__VENDOR_CONFIG_SEMANTIC_VERSION=v1.0
 declare -g config__VENDOR_MARK_DETECTOR='^#<vendor\.config:([[:alnum:]]+[.-][[:alnum:]]+)+>$'
 declare -g config__VENDOR_LINENO_DETECTOR='^([0-9]+)[\ ]'

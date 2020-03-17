@@ -6,6 +6,7 @@ New Release Process:
   >cd ./test
   >./config.sh
   >./config_test.sh
+  >./config_boot_test.sh
   ```
 - If testing fails, fix and rerun.
 - Determine the [semantic version](https://semver.org/) numbers for config.sh and its bundled components:

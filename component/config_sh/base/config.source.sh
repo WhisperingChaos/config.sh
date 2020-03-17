@@ -51,11 +51,12 @@ config_vendor_format_example(){
 
 	cat <<CONFIG_VENDOR_FORMAT_EXAMPLE
 #<vendor.config:${config__VENDOR_CONFIG_SEMANTIC_VERSION}>
-
-# section name
+# banner above ^
+# this is a comment
+# section name:
 [whisperingchaos.bash.component]
-# save to local    
-# directory      github address to repository                           branch/tag/commit hash
+# entry within a section:
+# Path            github Address to Repository                           Branch/Tag/Commit Hash
 'sourcer'        'https://github.com/WhisperingChaos/sourcer.sh'        'master'
 'base'           'https://github.com/WhisperingChaos/assert.source.sh'  'v1.0'
 
